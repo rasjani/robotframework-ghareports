@@ -37,4 +37,4 @@ def example(ctx):
 
 @task
 def test(ctx):
-    print("TEST: WIP")
+    print("TEST: WIP yey")
