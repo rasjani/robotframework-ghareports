@@ -87,5 +87,6 @@ class GHAReports(object):
                 cases.append(cells)
 
             self.summary.table(test_headers, cases)
-        open(self._output, "w") as f:
+
+        with open(self._output, "w") as f:
             f.write(self.summary.getvalue())
