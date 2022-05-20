@@ -1,0 +1,4 @@
+[flake8]
+ignore = E501, C812, ANN001, ANN101, ANN201
+max-line-length = 130
+exclude = .git,__pycache__,dist,venv

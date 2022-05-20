@@ -1,0 +1,9 @@
+twine
+python-language-server[all]
+black
+flake8
+flake8-annotations
+flake8-deprecated
+flake8-coding
+invoke
+-r requirements.txt
