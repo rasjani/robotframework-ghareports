@@ -32,7 +32,7 @@ def check(ctx):
 
 @task
 def example(ctx):
-    ctx.run("cd example && robot  --nostatusrc --pythonpath ../src --listener GHAReports .")
+    ctx.run("cd example && robot  --nostatusrc --pythonpath ../src --listener GHSummary .")
 
 
 @task
