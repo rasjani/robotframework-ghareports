@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import wrapt
-from mdgen import MDGen
+from mdgen import MDGen, MD_PASSFAIL
 
 
 @wrapt.decorator
@@ -77,16 +77,17 @@ class GHSummary(object):
     def close(self):
         self.summary.horizontal_ruler()
         test_headers = ["Testcase", "Status"]
+        alignments = ["left", "right"]
         for suitename in self._testcases.keys():
             self.summary.header(suitename)
             cases = []
             cells = []
             for testname in self._testcases[suitename].keys():
                 testcase = self._testcases[suitename][testname]
-                cells = [testcase["originalname"], testcase["status"]]
+                cells = [testcase["originalname"], MD_PASSFAIL[testcase["status"]]]
                 cases.append(cells)
 
-            self.summary.table(test_headers, cases)
+            self.summary.table(test_headers, cases, alignments)
 
         with open(self._output, "w") as f:
             f.write(self.summary.getvalue())
