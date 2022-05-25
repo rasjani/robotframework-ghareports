@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from io import StringIO
 from os import linesep
+from textwrap import wrap
 
 MD_FENCE = "```"
 MD_HEADER = "#"
@@ -42,7 +43,7 @@ class MDGen(StringIO):
     def paragraph(self, text):
         self.write(f"{text}{linesep}")
 
-    def table(self, headers, rows, alignments=None):
+    def table(self, headers, rows, alignments=None, cell_width_in_characters=0):
         def padalignment(st):
             header = alignment_lookup[st[0]]
             return f"{header[:1]}{'-'*st[1]}{header[1:]}"
@@ -63,7 +64,10 @@ class MDGen(StringIO):
 
         for row in rows:
             self.write("| ")
-            self.write(" | ".join(str(cell) for cell in row))
+            if cell_width_in_characters != 0:
+                self.write(" | ".join("<br/>".join(wrap(str(cell), cell_width_in_characters)) for cell in row))
+            else:
+                self.write(" | ".join(str(cell) for cell in row))
             self.write(f" |{linesep}")
 
         self.write(linesep)

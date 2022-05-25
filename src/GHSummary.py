@@ -87,7 +87,7 @@ class GHSummary(object):
                 cells = [testcase["originalname"], MD_PASSFAIL[testcase["status"]]]
                 cases.append(cells)
 
-            self.summary.table(test_headers, cases, alignments)
+            self.summary.table(test_headers, cases, alignments, 15)
 
         with open(self._output, "w") as f:
             f.write(self.summary.getvalue())
