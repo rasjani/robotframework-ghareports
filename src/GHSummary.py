@@ -12,7 +12,7 @@ def skip_if_not_initialized(wrapped, instance, args, kwargs):
     wrapped(*args, **kwargs)
 
 
-class GHAReports(object):
+class GHSummary(object):
     ROBOT_LISTENER_API_VERSION = 2
     _suites = {}
     _current_case = None
