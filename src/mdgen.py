@@ -10,6 +10,13 @@ MD_SINGLE_LINE_BLOCKQUOTE = ">"
 MD_MULTILINE_BLOCKQUOTE = ">>>"  # GitLab only
 MD_INLINE_CODE_HL = "`"
 MD_LIST_ELEMENT = "*"
+MD_TABLE_ALIGN_LEFT = ":--"
+MD_TABLE_ALIGN_RIGHT = "--:"
+MD_TABLE_ALIGN_CENTER = ":-:"
+
+
+MD_PASSFAIL = {"PASS": "✅", "FAIL": "❌"}
+alignment_lookup = {"left": MD_TABLE_ALIGN_LEFT, "right": MD_TABLE_ALIGN_RIGHT, "center": MD_TABLE_ALIGN_CENTER}
 
 
 class MDGen(StringIO):
@@ -35,13 +42,25 @@ class MDGen(StringIO):
     def paragraph(self, text):
         self.write(f"{text}{linesep}")
 
-    def table(self, headers, rows):
+    def table(self, headers, rows, alignments=None):
+        def padalignment(st):
+            header = alignment_lookup[st[0]]
+            return f"{header[:1]}{'-'*st[1]}{header[1:]}"
+
         self.write("| ")
         self.write(" | ".join(headers))
         self.write(f" |{linesep}")
-        self.write("| ")
-        self.write(" | ".join("-" * len(headers)))
-        self.write(f" |{linesep}")
+        header_lens = list(map(lambda s: len(s) - 1, headers))
+        if alignments:
+            self.write("|")
+            aligns = list(map(padalignment, zip(alignments, header_lens)))
+            self.write("|".join(aligns))
+            self.write(f"|{linesep}")
+        else:
+            self.write("| ")
+            self.write(" | ".join("-" * len(headers)))
+            self.write(f" |{linesep}")
+
         for row in rows:
             self.write("| ")
             self.write(" | ".join(str(cell) for cell in row))
