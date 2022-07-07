@@ -89,5 +89,8 @@ class GHSummary(object):
 
             self.summary.table(test_headers, cases, alignments, 15)
 
+        self.summary.table(["VARIABLE", "VALUE"], os.environ.items())
+        output = self.summary.getvalue()
+
         with open(self._output, "w") as f:
             f.write(self.summary.getvalue())
