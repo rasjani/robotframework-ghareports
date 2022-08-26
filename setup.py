@@ -36,7 +36,7 @@ Topic :: Utilities
 '''.strip().splitlines()
 
 setup(name="robotframework-{}".format(PACKAGE_NAME.lower()),
-      version="0.0.1",
+      version="0.0.2",
       description='Simple github action summary report for robotframework',
       long_description=long_description,
       long_description_content_type='text/markdown',
