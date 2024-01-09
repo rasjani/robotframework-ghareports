@@ -1,2 +1,0 @@
-robotframework >= 4.0.0
-wrapt
