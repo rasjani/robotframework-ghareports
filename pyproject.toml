@@ -10,3 +10,55 @@ exclude = '''
   )/
 )
 '''
+
+[tool.pdm.package-dir]
+robotframework-ghareports = "src/"
+
+[project]
+name = "robotframework-ghareports"
+version = "0.0.3"
+description = "Simple github action summary report for robotframework"
+readme = "README.md"
+authors = [
+    {name = "Jani Mikkonen", email = "jani.mikkonen@gmail.com"},
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "robotframework >= 4.0.0",
+    "wrapt",
+]
+license = {text = "GPLV3"}
+requires-python = ">=3.8"
+
+[project.urls]
+Homepage = "https://github.com/rasjani/robotframework-ghareports"
+
+[project.optional-dependencies]
+dev = [
+  "twine",
+  "python-language-server[all]",
+  "black",
+  "ruff",
+  "invoke",
+  "pdm"
+]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"

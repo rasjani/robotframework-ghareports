@@ -19,20 +19,26 @@ def black(ctx):
 
 
 @task
-def flake8(ctx):
-    print("Running Flake8")
-    ctx.run("flake8 . --select=E9,F63,F7,F82 --show-source --statistics")
-    ctx.run("flake8 . --exit-zero --statistics")
+def ruff(ctx):
+    print("Running ruff")
+    ctx.run("ruff .")
 
 
-@task(post=[black, flake8])
+@task(post=[black, ruff])
 def check(ctx):
     print("Running all checks")
 
 
 @task
 def example(ctx):
-    ctx.run("cd example && GITHUB_STEP_SUMMARY=../example_step_summary.md robot  --nostatusrc --pythonpath ../src --listener GHAReports .")
+    ctx.run(
+        "cd example && GITHUB_STEP_SUMMARY=../example_step_summary.md robot  --nostatusrc --pythonpath ../src --listener GHAReports ."
+    )
+
+
+@task
+def exampleci(ctx):
+    ctx.run("cd example && robot  --nostatusrc --pythonpath ../src --listener GHAReports .")
 
 
 @task

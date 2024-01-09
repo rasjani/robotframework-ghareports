@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
 import wrapt
+from pathlib import Path
+import sys
 from mdgen import MDGen, MD_PASSFAIL
 
 
@@ -26,7 +28,12 @@ class GHAReports(object):
 
     def __init__(self, junit_file="junit.xml", junit_xslt="junit-9"):
         self._output = os.environ.get("GITHUB_STEP_SUMMARY", None)
-        self.initialized = self._output != None  # NOQA: E711
+        if self._output:
+            self.initialized = True
+            self._output = Path(self._output).resolve()
+            print(f"GHAReports detected Github environment. Generating Step Summary: {str(self._output)}", file=sys.stderr)
+        else:
+            print("GHAReports did not detect Github environment.", file=sys.stderr)
         self.summary = MDGen()
 
     @skip_if_not_initialized
@@ -89,5 +96,5 @@ class GHAReports(object):
 
             self.summary.table(test_headers, cases, alignments, 15)
 
-        with open(self._output, "w") as f:
+        with open(self._output, "w", encoding="utf-8") as f:
             f.write(self.summary.getvalue())
