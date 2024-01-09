@@ -9,7 +9,7 @@ assert Path.cwd() == Path(__file__).parent
 @task
 def reformat(ctx):
     print("Reformatting code with black")
-    ctx.run("black src *.py")
+    ctx.run("black src -l130 -tpy311 *.py")
 
 
 @task
@@ -32,7 +32,7 @@ def check(ctx):
 
 @task
 def example(ctx):
-    ctx.run("cd example && robot  --nostatusrc --pythonpath ../src --listener GHReports .")
+    ctx.run("cd example && GITHUB_STEP_SUMMARY=../example_step_summary.md robot  --nostatusrc --pythonpath ../src --listener GHAReports .")
 
 
 @task
