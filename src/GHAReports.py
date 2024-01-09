@@ -26,8 +26,11 @@ class GHAReports(object):
     # suite attributes: name test_cases  hostname id package timestamp properties file log url stdout stderr
     # case attributes: name classname elapsed_sec stdout stderr assertions timestamp status category file line log group url
 
-    def __init__(self, junit_file="junit.xml", junit_xslt="junit-9"):
+    def __init__(self, cell_width_in_characters=0):
         self._output = os.environ.get("GITHUB_STEP_SUMMARY", None)
+
+        self.cell_width_in_characters = cell_width_in_characters
+
         if self._output:
             self.initialized = True
             self._output = Path(self._output).resolve()
@@ -94,7 +97,7 @@ class GHAReports(object):
                 cells = [testcase["originalname"], MD_PASSFAIL[testcase["status"]]]
                 cases.append(cells)
 
-            self.summary.table(test_headers, cases, alignments, 15)
+            self.summary.table(test_headers, cases, alignments, self.cell_width_in_characters)
 
         with open(self._output, "w", encoding="utf-8") as f:
             f.write(self.summary.getvalue())
