@@ -149,13 +149,13 @@ class GHAReports(object):
             cell_width_in_characters=self.cell_width_in_characters,
         )
 
-        self.summary.header("Passing tests")
+        self.summary.header(f"{MD_STATUSICONS['PASS']} Passing tests")
         test_headers = ["Testcase", "Duration (sec)", "Suite"]
         self.summary.table(
             test_headers, passed, alignments=["left", "right", "left"], cell_width_in_characters=self.cell_width_in_characters
         )
 
-        self.summary.header("Failing tests")
+        self.summary.header(f"{MD_STATUSICONS['FAIL']} Failing tests")
         test_headers = ["Testcase", "Message", "Duration (sec)", "Suite"]
         self.summary.table(
             test_headers,
@@ -164,7 +164,7 @@ class GHAReports(object):
             cell_width_in_characters=self.cell_width_in_characters,
         )
 
-        self.summary.header("Skipped tests")
+        self.summary.header(f"{MD_STATUSICONS['SKIP']} Skipped tests")
         test_headers = ["Testcase", "Message", "Duration (sec)", "Suite"]
         self.summary.table(
             test_headers,
