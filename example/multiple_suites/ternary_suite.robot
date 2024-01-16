@@ -4,7 +4,10 @@
 *** Test Cases ***
 
 This will just be for debugging purposes
-  Fail    This Suite will completely fail
+  Should Be Equal   ${True}   ${False}    This Suite will completely fail with assertation
 
 And so is this
+  Sleep   2 seconds
   Fail    This Suite will completely fail
+
+
