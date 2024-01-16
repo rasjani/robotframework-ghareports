@@ -15,6 +15,9 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: "3.11"
+    - name: This Will Not Be Merged
+      run: |
+        env
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip setuptools wheel
