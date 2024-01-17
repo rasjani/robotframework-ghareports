@@ -16,7 +16,7 @@ robotframework-ghareports = "src/"
 
 [project]
 name = "robotframework-ghareports"
-version = "0.0.7"
+version = "0.1.0"
 description = "Simple github action summary report for robotframework"
 readme = "README.md"
 authors = [
