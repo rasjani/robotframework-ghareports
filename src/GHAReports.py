@@ -47,6 +47,7 @@ class GHAReports(object):
             print("GHAReports did not detect Github environment.", file=sys.stderr)
 
         if report_file:
+            self.initialized = True
             self._report = Path(report_file).resolve()
             print(f"GHAReports is generating extra report file @ {self._report}", file=sys.stderr)
 
