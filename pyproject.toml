@@ -56,7 +56,8 @@ dev = [
   "black",
   "ruff",
   "invoke",
-  "pdm"
+  "pdm",
+  "pytest"
 ]
 
 [build-system]

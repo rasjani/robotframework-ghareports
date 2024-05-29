@@ -21,7 +21,7 @@ def black(ctx):
 @task
 def ruff(ctx):
     print("Running ruff")
-    ctx.run("ruff .")
+    ctx.run("ruff tasks.py src/")
 
 
 @task(post=[black, ruff])
@@ -43,4 +43,4 @@ def exampleci(ctx):
 
 @task
 def test(ctx):
-    print("TEST: WIP")
+    ctx.run("python -m pytest utest/test*.py")
