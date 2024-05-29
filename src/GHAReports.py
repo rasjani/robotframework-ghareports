@@ -25,6 +25,8 @@ class GHAReports(object):
     _current_case = None
     _current_suite = None
     _testcases = {}
+    _output = None
+    _report = None
     initialized = False
     summary = None
     start_ts = None
@@ -33,7 +35,7 @@ class GHAReports(object):
     # suite attributes: name test_cases  hostname id package timestamp properties file log url stdout stderr
     # case attributes: name classname elapsed_sec stdout stderr assertions timestamp status category file line log group url
 
-    def __init__(self, cell_width_in_characters=0):
+    def __init__(self, cell_width_in_characters=0, report_file=None):
         self._output = os.environ.get("GITHUB_STEP_SUMMARY", None)
         self.cell_width_in_characters = cell_width_in_characters
 
@@ -43,6 +45,11 @@ class GHAReports(object):
             print(f"GHAReports detected Github environment. Generating Step Summary: {str(self._output)}", file=sys.stderr)
         else:
             print("GHAReports did not detect Github environment.", file=sys.stderr)
+
+        if report_file:
+            self._report = Path(report_file).resolve()
+            print("GHAReports is generating extra report file @ {self._report}", file=sys.stderr)
+
         self.summary = MDGen()
 
     @skip_if_not_initialized
@@ -118,8 +125,15 @@ class GHAReports(object):
                         skipped.append([testcase["name"], testcase["message"], duration, testcase["suite"]])
                         stats["skip"] += 1
 
-        stats["passrate"] = round(stats["pass"] / stats["total"] * 100, 2)
-        total_duration = round((self.stop_ts - self.start_ts) / 1000, 1)
+        try:
+            stats["passrate"] = round(stats["pass"] / stats["total"] * 100, 2)
+        except ZeroDivisionError:
+            stats["passrate"] = 0
+
+        if None in [self.stop_ts, self.start_ts]:
+            total_duration = 0
+        else:
+            total_duration = round((self.stop_ts - self.start_ts) / 1000, 1)
         return (
             [[stats["pass"], stats["fail"], stats["skip"], stats["total"], stats["passrate"], total_duration]],
             passed,
@@ -152,7 +166,10 @@ class GHAReports(object):
         self.summary.header(f"{MD_STATUSICONS['PASS']} Passing tests")
         test_headers = ["Testcase", "Duration (sec)", "Suite"]
         self.summary.table(
-            test_headers, passed, alignments=["left", "right", "left"], cell_width_in_characters=self.cell_width_in_characters
+            test_headers,
+            passed,
+            alignments=["left", "right", "left"],
+            cell_width_in_characters=self.cell_width_in_characters,
         )
 
         self.summary.header(f"{MD_STATUSICONS['FAIL']} Failing tests")
@@ -173,5 +190,9 @@ class GHAReports(object):
             cell_width_in_characters=self.cell_width_in_characters,
         )
 
-        with open(self._output, "w", encoding="utf-8") as f:
-            f.write(self.summary.getvalue())
+        buffer = self.summary.getvalue()
+        for filename in filter(bool, [self._output, self._report]):
+            try:
+                Path(filename).write_text(buffer, encoding="utf-8")
+            except Exception as e:
+                print(f"GHAReports encountered an errow while writing to {filename}:\n{e}", file=sys.stderr)

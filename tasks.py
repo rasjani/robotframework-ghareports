@@ -1,6 +1,7 @@
 # flake8: noqa
 from invoke import task, Collection
 from pathlib import Path
+import os
 
 
 assert Path.cwd() == Path(__file__).parent
@@ -15,7 +16,7 @@ def reformat(ctx):
 @task
 def black(ctx):
     print("Verifying Black conformance")
-    ctx.run("black --check --diff --verbose src *.py")
+    ctx.run("black -l130 -tpy310 --check --diff --verbose src *.py utest")
 
 
 @task
@@ -38,7 +39,10 @@ def example(ctx):
 
 @task
 def exampleci(ctx):
-    ctx.run("cd example && robot  --nostatusrc --pythonpath ../src --listener GHAReports .")
+    os.environ.update({"GITHUB_STEP_SUMMARY": str(Path.cwd() / "example_summary.md")})
+    ctx.run(
+        f"cd example && robot  --nostatusrc --pythonpath ../src --listener GHAReports:report_file={Path.cwd()}/extra_summary.md ."
+    )
 
 
 @task
