@@ -48,7 +48,7 @@ class GHAReports(object):
 
         if report_file:
             self._report = Path(report_file).resolve()
-            print("GHAReports is generating extra report file @ {self._report}", file=sys.stderr)
+            print(f"GHAReports is generating extra report file @ {self._report}", file=sys.stderr)
 
         self.summary = MDGen()
 
