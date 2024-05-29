@@ -16,7 +16,7 @@ robotframework-ghareports = "src/"
 
 [project]
 name = "robotframework-ghareports"
-version = "0.1.0"
+version = "0.2.0"
 description = "Simple github action summary report for robotframework"
 readme = "README.md"
 authors = [
@@ -30,10 +30,9 @@ classifiers = [
     "Intended Audience :: Information Technology",
     "Intended Audience :: System Administrators",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Quality Assurance",
     "Topic :: Software Development :: Testing",
@@ -44,7 +43,7 @@ dependencies = [
     "wrapt",
 ]
 license = {text = "GPLV3"}
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 
 [project.urls]
 Homepage = "https://github.com/rasjani/robotframework-ghareports"
@@ -57,7 +56,8 @@ dev = [
   "ruff",
   "invoke",
   "pdm",
-  "pytest"
+  "pytest",
+  "build"
 ]
 
 [build-system]

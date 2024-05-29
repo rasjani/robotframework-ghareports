@@ -3,7 +3,7 @@ import os
 import wrapt
 from pathlib import Path
 import sys
-from mdgen import MDGen, MD_STATUSICONS
+from .mdgen import MDGen, MD_STATUSICONS
 from time import time_ns
 
 
