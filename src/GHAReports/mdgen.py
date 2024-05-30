@@ -64,12 +64,14 @@ class MDGen(StringIO):
 
         for row in rows:
             self.write("| ")
-            if cell_width_in_characters != 0:
-                self.write(" | ".join("<br/>".join(wrap(str(cell), cell_width_in_characters)) for cell in row))
-            else:
-                self.write(" | ".join(str(cell) for cell in row))
-            self.write(f" |{linesep}")
-
+            for cell in row:
+                cell = str(cell)
+                if "\n" in cell:
+                    cell = "<br/>".join(cell.split("\n"))
+                if cell_width_in_characters != 0:
+                    cell = "<br/>".join(wrap(cell, cell_width_in_characters))
+                self.write(f"{cell} |")
+            self.write(f"{linesep}")
         self.write(linesep)
 
     def link(self, text, url):

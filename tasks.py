@@ -41,7 +41,7 @@ def example(ctx):
 def exampleci(ctx):
     os.environ.update({"GITHUB_STEP_SUMMARY": str(Path.cwd() / "example_summary.md")})
     ctx.run(
-        f"cd example && robot  --nostatusrc --pythonpath ../src --listener GHAReports:report_file={Path.cwd()}/extra_summary.md ."
+        f"cd example && robot  --nostatusrc --pythonpath ../src --listener GHAReports:60:report_file={Path.cwd()}/extra_summary.md ."
     )
 
 
