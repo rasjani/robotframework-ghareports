@@ -3,7 +3,7 @@ import os
 import contextlib
 from pathlib import Path
 
-sys.path.append(Path(__file__).parent / ".." / "src")
+sys.path.append(str((Path(__file__).parent / ".." / "src").resolve()))
 from GHAReports import GHAReports
 
 
