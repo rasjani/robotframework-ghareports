@@ -194,6 +194,7 @@ class GHAReports(object):
         buffer = self.summary.getvalue()
         for filename in filter(bool, [self._output, self._report]):
             try:
+                print(f"GHAReports writing a summary file to {filename}", file=sys.stderr)
                 Path(filename).write_text(buffer, encoding="utf-8")
             except Exception as e:
                 print(f"GHAReports encountered an errow while writing to {filename}:\n{e}", file=sys.stderr)
