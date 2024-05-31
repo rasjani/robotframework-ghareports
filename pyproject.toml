@@ -1,15 +1,14 @@
-[tool.black]
+[tool.ruff]
+exclude = [
+  ".git",
+  "venv"
+]
 line-length = 130
-target-version = ['py310']
-exclude = '''
-(
-  /(
-    | \.git
-    | \venv
-    | \.venv
-  )/
-)
-'''
+indent-width = 2
+target-version = "py310"
+[tool.ruff.lint]
+select = ["E", "F", "W", "YTT", "BLE", "A", "COM", "PT", "Q", "RET", "ARG", "RUF"]
+ignore = ["RUF012", "COM812"]
 
 [tool.pdm.package-dir]
 robotframework-ghareports = "src/"

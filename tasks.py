@@ -6,26 +6,18 @@ import os
 
 assert Path.cwd() == Path(__file__).parent
 
-
 @task
-def reformat(ctx):
-    print("Reformatting code with black")
-    ctx.run("black src -l130 -tpy311 *.py")
-
-
-@task
-def black(ctx):
-    print("Verifying Black conformance")
-    ctx.run("black -l130 -tpy310 --check --diff --verbose src *.py utest")
-
+def format(ctx):
+    print("Formatting with ruff")
+    ctx.run("ruff format tasks.py src/ utest/")
 
 @task
 def ruff(ctx):
     print("Running ruff")
-    ctx.run("ruff tasks.py src/")
+    ctx.run("ruff check tasks.py src/ utest/")
 
 
-@task(post=[black, ruff])
+@task(post=[ruff])
 def check(ctx):
     print("Running all checks")
 
