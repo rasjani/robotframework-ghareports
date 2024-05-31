@@ -3,20 +3,30 @@ from invoke import task, Collection
 from pathlib import Path
 import os
 
-
+to_be_checked = ["tasks.py", "utest/", "src/"]
 assert Path.cwd() == Path(__file__).parent
+
+
+def _files():
+  return " ".join(to_be_checked)
 
 
 @task
 def format(ctx):
   print("Formatting with ruff")
-  ctx.run("ruff format tasks.py src/ utest/")
+  ctx.run(f"ruff format {_files()}")
+
+
+@task
+def formatcheck(ctx):
+  print("Check format with ruff")
+  ctx.run(f"ruff format --check --diff {_files()}")
 
 
 @task
 def ruff(ctx):
   print("Running ruff")
-  ctx.run("ruff check tasks.py src/ utest/")
+  ctx.run(f"ruff check {_files()}")
 
 
 @task(post=[ruff])
