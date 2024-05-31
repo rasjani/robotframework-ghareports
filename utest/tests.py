@@ -58,3 +58,5 @@ def test_writing(tmp_path):
         r.close()
         assert step_summary.exists() == True
         assert extra_report.exists() == True
+
+        assert step_summary != extra_report
