@@ -1,8 +1,7 @@
 venv/
 *.html
 *.xml
-
-.pabotsuitenames
-dist/
+example_summary.md
 extra_summary.md
+dist/
 
