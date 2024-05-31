@@ -10,7 +10,7 @@ respect-gitignore = true
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "YTT", "BLE", "A", "COM", "PT", "Q", "RET", "ARG", "RUF"]
-ignore = ["RUF012", "COM812"]
+ignore = ["RUF012", "COM812","RUF100"]
 
 [tool.ruff.format]
 quote-style = "double"
