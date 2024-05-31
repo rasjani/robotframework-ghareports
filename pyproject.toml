@@ -5,10 +5,16 @@ exclude = [
 ]
 line-length = 130
 indent-width = 2
-target-version = "py310"
+respect-gitignore = true
+
+
 [tool.ruff.lint]
 select = ["E", "F", "W", "YTT", "BLE", "A", "COM", "PT", "Q", "RET", "ARG", "RUF"]
 ignore = ["RUF012", "COM812"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
 
 [tool.pdm.package-dir]
 robotframework-ghareports = "src/"
