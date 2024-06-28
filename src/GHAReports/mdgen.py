@@ -16,7 +16,7 @@ MD_TABLE_ALIGN_RIGHT = "--:"
 MD_TABLE_ALIGN_CENTER = ":-:"
 
 
-MD_STATUSICONS = {"PASS": "✅", "FAIL": "❌", "SKIP": "⏩"}
+MD_STATUSICONS = {"PASS": "✅", "FAIL": "❌", "SKIP": "⏩", "WARN": "⚠"}
 alignment_lookup = {"left": MD_TABLE_ALIGN_LEFT, "right": MD_TABLE_ALIGN_RIGHT, "center": MD_TABLE_ALIGN_CENTER}
 
 

@@ -18,3 +18,6 @@ Third One Is Skipped
 Forth Test With Very Long Message
   Fail    TimeoutError: page.waitForNavigation: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation to
   "https://dev-prepaid.telia.io/fi/account/signup/otp" until "load"\n============================================================\nTip: Use "Set Browser Timeout" for increasing the timeout.
+
+Issue a Warning
+  Log   Warning to all rudeboys!    level=WARN

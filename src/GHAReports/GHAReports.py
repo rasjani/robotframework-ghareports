@@ -24,6 +24,7 @@ class GHAReports(object):
   _suites = {}
   _current_case = None
   _current_suite = None
+  _current_case = None
   _testcases = {}
   _output = None
   _report = None
@@ -77,13 +78,15 @@ class GHAReports(object):
 
   @skip_if_not_initialized
   def start_test(self, name, attrs):
+    if self._current_suite:
+      self._current_case = attrs["longname"]
     current_case = attrs["longname"]
-    self._current_case = current_case
 
     attrs["name"] = name
     attrs["start_ts"] = getmsts()
     attrs["stdout"] = []
     attrs["stderr"] = []
+    attrs["warnings"] = []
     self._testcases[self._current_suite][current_case] = attrs
 
   @skip_if_not_initialized
@@ -99,7 +102,14 @@ class GHAReports(object):
 
   @skip_if_not_initialized
   def start_keyword(self, name, attrs):
-    pass
+    if name == "BuiltIn.Log":
+      rest = []
+      message = attrs["args"][0]
+      rest = attrs["args"][1:]
+
+      for checkwarn in ["WARN", "level=WARN"]:
+        if checkwarn in rest and self._current_suite and self._current_case and message:
+          self._testcases[self._current_suite][self._current_case]["warnings"].append(message)
 
   @skip_if_not_initialized
   def end_keyword(self, name, attrs):
@@ -110,6 +120,7 @@ class GHAReports(object):
     passed = []
     failed = []
     skipped = []
+    warns = []
     for suitename in self._testcases.keys():
       for testname in self._testcases[suitename].keys():
         stats["total"] += 1
@@ -125,7 +136,15 @@ class GHAReports(object):
           case "SKIP":
             skipped.append([testcase["name"], testcase["message"], duration, testcase["suite"]])
             stats["skip"] += 1
-
+        if len(self._testcases[suitename][testname]["warnings"]) > 0:
+          warns.extend(
+            list(
+              map(
+                lambda logrow: (testname.replace(f"{suitename}.", ""), logrow, suitename),
+                self._testcases[suitename][testname]["warnings"],
+              )
+            )
+          )
     try:
       stats["passrate"] = round(stats["pass"] / stats["total"] * 100, 2)
     except ZeroDivisionError:
@@ -140,13 +159,14 @@ class GHAReports(object):
       passed,
       failed,
       skipped,
+      warns,
     )
 
   @skip_if_not_initialized
   def close(self):
     self.stop_ts = getmsts()
 
-    stats, passed, failed, skipped = self._generate_report_structure()
+    stats, passed, failed, skipped, warns = self._generate_report_structure()
     self.summary.horizontal_ruler()
     test_headers = [
       f"Passed {MD_STATUSICONS['PASS']}",
@@ -190,6 +210,16 @@ class GHAReports(object):
       alignments=["left", "left", "right", "left"],
       cell_width_in_characters=self.cell_width_in_characters,
     )
+
+    if len(warns) > 0:
+      self.summary.header(f"{MD_STATUSICONS['WARN']} Warnings")
+      test_headers = ["Test Case", "Message", "Suite"]
+      self.summary.table(
+        test_headers,
+        warns,
+        alignments=["left", "left", "left"],
+        cell_width_in_characters=self.cell_width_in_characters,
+      )
 
     buffer = self.summary.getvalue()
     for filename in filter(bool, [self._output, self._report]):

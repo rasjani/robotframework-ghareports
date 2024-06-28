@@ -10,4 +10,5 @@ And so is this
   Sleep   2 seconds
   Fail    This Suite will completely fail
 
-
+Yet An Another Warning
+  Log   Another warning, pay attention    WARN
