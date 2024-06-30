@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import os
+import re
 import wrapt
 from pathlib import Path
 import sys
 from .mdgen import MDGen, MD_STATUSICONS
 from time import time_ns
+from robot.libraries.BuiltIn import BuiltIn
 
 
 @wrapt.decorator
@@ -28,6 +30,7 @@ class GHAReports(object):
   _testcases = {}
   _output = None
   _report = None
+  _rf = None
   initialized = False
   summary = None
   start_ts = None
@@ -37,6 +40,7 @@ class GHAReports(object):
   # case attributes: name classname elapsed_sec stdout stderr assertions timestamp status category file line log group url
 
   def __init__(self, cell_width_in_characters=0, report_file=None):
+    self._rf = BuiltIn()
     self._output = os.environ.get("GITHUB_STEP_SUMMARY", None)
     self.cell_width_in_characters = cell_width_in_characters
 
@@ -106,6 +110,11 @@ class GHAReports(object):
       rest = []
       message = attrs["args"][0]
       rest = attrs["args"][1:]
+      re_var = r"(\${\w+})"
+      for m in re.finditer(re_var, message, re.MULTILINE):
+        placeholder = m.group(0)
+        val = self._rf.get_variable_value(placeholder)
+        message = message.replace(placeholder, val)
 
       for checkwarn in ["WARN", "level=WARN"]:
         if checkwarn in rest and self._current_suite and self._current_case and message:
