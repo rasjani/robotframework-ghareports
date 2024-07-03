@@ -113,8 +113,9 @@ class GHAReports(object):
       re_var = r"(\${\w+})"
       for m in re.finditer(re_var, message, re.MULTILINE):
         placeholder = m.group(0)
-        val = self._rf.get_variable_value(placeholder)
-        message = message.replace(placeholder, val)
+        val = self._rf.get_variable_value(placeholder, None)
+        if val:
+          message = message.replace(placeholder, val)
 
       for checkwarn in ["WARN", "level=WARN"]:
         if checkwarn in rest and self._current_suite and self._current_case and message:
