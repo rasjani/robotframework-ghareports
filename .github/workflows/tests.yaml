@@ -31,3 +31,11 @@ jobs:
     - name: Run example tests
       run: |
         inv exampleci
+    - uses: actions/upload-artifact@v4
+      with:
+        name: testreports
+        path: |
+          example/output.xml
+          example/report.html
+          example/log.html
+          extra_summary.md
