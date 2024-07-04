@@ -22,3 +22,9 @@ Forth Test With Very Long Message
 Issue a Warning
   ${val}=   Set Variable    and rudegals
   Log   Warning to all rudeboys ${val}!    level=WARN
+
+Issue Multiple Warnings From FOR loop
+  @{values}=   Create List    one    two    three
+  FOR    ${val}    IN    @{values}
+    Log   Warning Step: ${val}    level=WARN
+  END
