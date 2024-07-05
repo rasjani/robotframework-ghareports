@@ -22,7 +22,7 @@ def getmsts():
 
 
 class GHAReports(object):
-  ROBOT_LISTENER_API_VERSION = 2
+  ROBOT_LISTENER_API_VERSION = 3
   _suites = {}
   _current_case = None
   _current_suite = None
@@ -59,34 +59,41 @@ class GHAReports(object):
     self.summary = MDGen()
 
   @skip_if_not_initialized
-  def start_suite(self, name, attrs):
+  def start_suite(self, data, result):
     if not self.start_ts:
       self.start_ts = getmsts()
 
-    if len(attrs["tests"]) > 0:
-      self._current_suite = attrs["longname"]
+    if len(data.tests) > 0:
+      self._current_suite = data.longname
       current_suite = self._current_suite
-      attrs["name"] = name
+      attrs = {}
+      # TODO: create attrs from data/result
+      attrs["name"] = data.name
+      attrs["longname"] = data.longname
       attrs["stdout"] = []
       attrs["stderr"] = []
       self._suites[current_suite] = attrs
       self._testcases[current_suite] = {}
 
   @skip_if_not_initialized
-  def end_suite(self, name, attrs):
-    if len(attrs["tests"]) > 0:
-      current_suite = attrs["longname"]
-      attrs["name"] = name
+  def end_suite(self, data, result):
+    if len(data.tests) > 0:
+      attrs = {}
+      current_suite = data.longname
+      attrs["name"] = data.name
+      attrs["stop_ts"] = result.endtime
+      # TODO: create attrs from data/result
       self._suites[current_suite].update(attrs)
       self._current_suite = None
 
   @skip_if_not_initialized
-  def start_test(self, name, attrs):
+  def start_test(self, data, result):
     if self._current_suite:
-      self._current_case = attrs["longname"]
-    current_case = attrs["longname"]
-
-    attrs["name"] = name
+      self._current_case = data.longname
+    current_case = data.longname
+    attrs = {}
+    # TODO: create attrs from data/result
+    attrs["name"] = data.name
     attrs["start_ts"] = getmsts()
     attrs["stdout"] = []
     attrs["stderr"] = []
@@ -94,35 +101,26 @@ class GHAReports(object):
     self._testcases[self._current_suite][current_case] = attrs
 
   @skip_if_not_initialized
-  def end_test(self, name, attrs):
-    current_case = attrs["longname"]
-    self._testcases[self._current_suite][current_case].update(attrs)
-    attrs["name"] = name
-    attrs["stop_ts"] = getmsts()
-    attrs["duration"] = attrs["stop_ts"] - self._testcases[self._current_suite][current_case]["start_ts"]
+  def end_test(self, data, result):
+    current_case = data.longname
+    attrs = {}
+    # TODO: create attrs from data/result
+    attrs["name"] = data.name
+    attrs["stop_ts"] = result.endtime
+    attrs["duration"] = result.elapsedtime
     attrs["suite"] = self._current_suite
+    attrs["status"] = result.status
+    attrs["message"] = result.message
     self._testcases[self._current_suite][current_case].update(attrs)
     self._current_case = None
 
-  @skip_if_not_initialized
-  def start_keyword(self, name, attrs):
-    if name == "BuiltIn.Log":
-      rest = []
-      message = attrs["args"][0]
-      rest = attrs["args"][1:]
-      re_var = r"(\${\w+})"
-      for m in re.finditer(re_var, message, re.MULTILINE):
-        placeholder = m.group(0)
-        val = self._rf.get_variable_value(placeholder, None)
-        if val:
-          message = message.replace(placeholder, val)
+  def log_message(self, message):
+    if message.level == "WARN" and  self._current_suite and self._current_case and message.message:
+        self._testcases[self._current_suite][self._current_case]["warnings"].append(message.message)
 
-      for checkwarn in ["WARN", "level=WARN"]:
-        if checkwarn in rest and self._current_suite and self._current_case and message:
-          self._testcases[self._current_suite][self._current_case]["warnings"].append(message)
 
   @skip_if_not_initialized
-  def end_keyword(self, name, attrs):
+  def end_keyword(self, data, result):
     pass
 
   def _generate_report_structure(self):
