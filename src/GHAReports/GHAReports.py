@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import re
 import wrapt
 from pathlib import Path
 import sys
@@ -59,7 +58,7 @@ class GHAReports(object):
     self.summary = MDGen()
 
   @skip_if_not_initialized
-  def start_suite(self, data, result):
+  def start_suite(self, data, result):  # noqa
     if not self.start_ts:
       self.start_ts = getmsts()
 
@@ -87,7 +86,7 @@ class GHAReports(object):
       self._current_suite = None
 
   @skip_if_not_initialized
-  def start_test(self, data, result):
+  def start_test(self, data, result):  # noqa
     if self._current_suite:
       self._current_case = data.longname
     current_case = data.longname
@@ -115,9 +114,8 @@ class GHAReports(object):
     self._current_case = None
 
   def log_message(self, message):
-    if message.level == "WARN" and  self._current_suite and self._current_case and message.message:
-        self._testcases[self._current_suite][self._current_case]["warnings"].append(message.message)
-
+    if message.level == "WARN" and self._current_suite and self._current_case and message.message:
+      self._testcases[self._current_suite][self._current_case]["warnings"].append(message.message)
 
   @skip_if_not_initialized
   def end_keyword(self, data, result):
