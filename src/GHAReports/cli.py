@@ -6,8 +6,8 @@ import argparse
 
 
 class GHAReportsVisitor(ResultVisitor):
-  def __init__(self, markdown_file=None):
-    self.sum = GHAReports(report_file=markdown_file)
+  def __init__(self, cell_width_in_characters, markdown_file=None):
+    self.sum = GHAReports(cell_width_in_characters, markdown_file, False)
 
   def start_suite(self, suite):
     self.sum.start_suite(suite, None)
@@ -41,6 +41,15 @@ def main():
     dest="markdown",
     help="Write output to additional markdown file even when running from github actions",
   )
+  parser.add_argument(
+    "-w",
+    "--width",
+    default=0,
+    metavar="N",
+    dest="cell_width_in_characters",
+    type=int,
+    help="Amount of characters in single row in table cell",
+  )
 
   args = parser.parse_args()
 
@@ -51,9 +60,9 @@ def main():
   result = ExecutionResult(args.robotlog)
   visitor = None
   if args.markdown:
-    visitor = GHAReportsVisitor(args.markdown)
+    visitor = GHAReportsVisitor(args.cell_width_in_characters, markdown_file=args.markdown)
   else:
-    visitor = GHAReportsVisitor()
+    visitor = GHAReportsVisitor(args.cell_width_in_characters)
 
   result.visit(visitor)
 
