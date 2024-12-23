@@ -61,7 +61,7 @@ class GHAReports(object):
   @skip_if_not_initialized
   def start_suite(self, data, result):  # noqa
     if not self.as_listener:
-      new_ts = data.start_time.timestamp()
+      new_ts = data.start_time.timestamp() * 1000
       if not self.start_ts or new_ts < self.start_ts:
         self.start_ts = new_ts
     else:
@@ -82,6 +82,11 @@ class GHAReports(object):
 
   @skip_if_not_initialized
   def end_suite(self, data, result):
+    if not self.as_listener:
+      stop_ts = result.end_time.timestamp() * 1000
+      if self.stop_ts is None or self.stop_ts < stop_ts:
+        self.stop_ts = stop_ts
+
     if len(data.tests) > 0:
       attrs = {}
       current_suite = data.longname
@@ -158,7 +163,7 @@ class GHAReports(object):
             )
           )
     try:
-      stats["passrate"] = round(stats["pass"] / stats["total"] * 100, 2)
+      stats["passrate"] = round(stats["pass"] / (stats["total"] - stats["skip"]) * 100, 2)
     except ZeroDivisionError:
       stats["passrate"] = 0
 
