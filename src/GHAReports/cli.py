@@ -7,7 +7,7 @@ import argparse
 
 class GHAReportsVisitor(ResultVisitor):
   def __init__(self, cell_width_in_characters, markdown_file=None):
-    self.sum = GHAReports(cell_width_in_characters, markdown_file, False)
+    self.sum = GHAReports(cell_width_in_characters, markdown_file, True, False)
 
   def start_suite(self, suite):
     self.sum.start_suite(suite, None)

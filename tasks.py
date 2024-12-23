@@ -37,7 +37,7 @@ def check(ctx):
 @task
 def example(ctx):
   ctx.run(
-    "cd example && GITHUB_STEP_SUMMARY=../example_step_summary.md robot  --nostatusrc --pythonpath ../src --listener GHAReports ."
+    "cd example && GITHUB_STEP_SUMMARY=../example_step_summary.md robot  --nostatusrc --pythonpath ../src --listener GHAReports:collapsaple=True ."
   )
 
 
