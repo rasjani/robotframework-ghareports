@@ -38,8 +38,9 @@ class GHAReports(object):
   # suite attributes: name test_cases  hostname id package timestamp properties file log url stdout stderr
   # case attributes: name classname elapsed_sec stdout stderr assertions timestamp status category file line log group url
 
-  def __init__(self, cell_width_in_characters=0, report_file=None):
+  def __init__(self, cell_width_in_characters=0, report_file=None, as_listener=True):
     self._rf = BuiltIn()
+    self.as_listener = as_listener
     self._output = os.environ.get("GITHUB_STEP_SUMMARY", None)
     self.cell_width_in_characters = cell_width_in_characters
 
@@ -59,8 +60,13 @@ class GHAReports(object):
 
   @skip_if_not_initialized
   def start_suite(self, data, result):  # noqa
-    if not self.start_ts:
-      self.start_ts = getmsts()
+    if not self.as_listener:
+      new_ts = data.start_time.timestamp()
+      if not self.start_ts or new_ts < self.start_ts:
+        self.start_ts = new_ts
+    else:
+      if not self.start_ts:
+        self.start_ts = getmsts()
 
     if len(data.tests) > 0:
       self._current_suite = data.longname
@@ -132,16 +138,16 @@ class GHAReports(object):
         stats["total"] += 1
         testcase = self._testcases[suitename][testname]
         duration = round(testcase["duration"] / 1000, 1)
-        match testcase["status"]:
-          case "PASS":
-            stats["pass"] += 1
-            passed.append([testcase["name"], duration, testcase["suite"]])
-          case "FAIL":
-            failed.append([testcase["name"], testcase["message"], duration, testcase["suite"]])
-            stats["fail"] += 1
-          case "SKIP":
-            skipped.append([testcase["name"], testcase["message"], duration, testcase["suite"]])
-            stats["skip"] += 1
+        status = testcase["status"]
+        if status == "PASS":
+          stats["pass"] += 1
+          passed.append([testcase["name"], duration, testcase["suite"]])
+        elif status == "FAIL":
+          failed.append([testcase["name"], testcase["message"], duration, testcase["suite"]])
+          stats["fail"] += 1
+        elif status == "SKIP":
+          skipped.append([testcase["name"], testcase["message"], duration, testcase["suite"]])
+          stats["skip"] += 1
         if len(self._testcases[suitename][testname]["warnings"]) > 0:
           warns.extend(
             list(
@@ -170,7 +176,8 @@ class GHAReports(object):
 
   @skip_if_not_initialized
   def close(self):
-    self.stop_ts = getmsts()
+    if self.as_listener:
+      self.stop_ts = getmsts()
 
     stats, passed, failed, skipped, warns = self._generate_report_structure()
     self.summary.horizontal_ruler()
