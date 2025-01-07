@@ -24,7 +24,7 @@ robot --listener GHAReports .
 ## Usage as standalone tool
 
 ```
-ghareports -r path/to/robot/output.xml
+python -mGHARerports -r path/to/robot/output.xml
 ```
 
 Help that shows all available arguments
@@ -43,7 +43,7 @@ robot --listener GHAReports:35 .
 
 or
 ```shell
-ghareports -r output.xml --width=35
+python -mGHAReports -r output.xml --width=35
 ```
 
 This will split each cell with string content at every 35 characters into a new line.
