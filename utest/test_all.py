@@ -5,6 +5,11 @@ from pathlib import Path
 
 sys.path.append(str((Path(__file__).parent / ".." / "src").resolve()))
 from GHAReports import GHAReports  # NOQA: E402
+import platform
+
+PREFIX = ""
+if platform.system() == "Windows":
+  PREFIX = Path.cwd().drive
 
 
 @contextlib.contextmanager
@@ -35,19 +40,19 @@ def test_no_github():
 
 
 def test_with_github():
-  with modified_environ(GITHUB_STEP_SUMMARY="/foo/bar"):
+  with modified_environ(GITHUB_STEP_SUMMARY=f"{PREFIX}/foo/bar"):
     r = GHAReports()
     assert r.initialized is True
-    assert r._output == Path("/foo/bar")
+    assert r._output == Path(f"{PREFIX}/foo/bar")
     assert r._report is None
 
 
 def test_extra_report_file():
-  with modified_environ(GITHUB_STEP_SUMMARY="/foo/bar"):
-    r = GHAReports(report_file="/bar/foo")
+  with modified_environ(GITHUB_STEP_SUMMARY=f"{PREFIX}/foo/bar"):
+    r = GHAReports(report_file=f"{PREFIX}/bar/foo")
     assert r.initialized is True
-    assert r._output == Path("/foo/bar")
-    assert r._report == Path("/bar/foo")
+    assert r._output == Path(f"{PREFIX}/foo/bar")
+    assert r._report == Path(f"{PREFIX}/bar/foo")
 
 
 def test_writing(tmp_path):

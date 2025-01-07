@@ -57,4 +57,4 @@ def exampleci(ctx):
 
 @task
 def test(ctx):
-  ctx.run("python -m pytest utest/test*.py")
+  ctx.run("python -m pytest")
