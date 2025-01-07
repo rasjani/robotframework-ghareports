@@ -18,6 +18,11 @@ def format(ctx):
 
 
 @task
+def build(ctx):
+  ctx.run("pdm build")
+
+
+@task
 def formatcheck(ctx):
   print("Check format with ruff")
   ctx.run(f"ruff format --check --diff {_files()}")
