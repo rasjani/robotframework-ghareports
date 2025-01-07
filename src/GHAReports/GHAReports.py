@@ -38,7 +38,7 @@ class GHAReports(object):
   # suite attributes: name test_cases  hostname id package timestamp properties file log url stdout stderr
   # case attributes: name classname elapsed_sec stdout stderr assertions timestamp status category file line log group url
 
-  def __init__(self, cell_width_in_characters=0, report_file=None, as_listener=True):
+  def __init__(self, cell_width_in_characters=0, report_file=None, collapsaple=True, as_listener=True):
     self._rf = BuiltIn()
     self.as_listener = as_listener
     self._output = os.environ.get("GITHUB_STEP_SUMMARY", None)
@@ -56,7 +56,7 @@ class GHAReports(object):
       self._report = Path(report_file).resolve()
       print(f"GHAReports is generating extra report file @ {self._report}", file=sys.stderr)
 
-    self.summary = MDGen()
+    self.summary = MDGen(collapsaple)
 
   @skip_if_not_initialized
   def start_suite(self, data, result):  # noqa
@@ -200,9 +200,11 @@ class GHAReports(object):
       stats,
       alignments=["center", "center", "center", "center", "right", "right"],
       cell_width_in_characters=self.cell_width_in_characters,
+      ignore_collapsaple=True,
     )
 
     self.summary.header(f"{MD_STATUSICONS['PASS']} Passing tests")
+    self.summary.start_section()
     test_headers = ["Testcase", "Duration (sec)", "Suite"]
     self.summary.table(
       test_headers,
@@ -210,8 +212,9 @@ class GHAReports(object):
       alignments=["left", "right", "left"],
       cell_width_in_characters=self.cell_width_in_characters,
     )
-
+    self.summary.end_section()
     self.summary.header(f"{MD_STATUSICONS['FAIL']} Failing tests")
+    self.summary.start_section()
     test_headers = ["Testcase", "Message", "Duration (sec)", "Suite"]
     self.summary.table(
       test_headers,
@@ -219,8 +222,10 @@ class GHAReports(object):
       alignments=["left", "left", "right", "left"],
       cell_width_in_characters=self.cell_width_in_characters,
     )
+    self.summary.end_section()
 
     self.summary.header(f"{MD_STATUSICONS['SKIP']} Skipped tests")
+    self.summary.start_section()
     test_headers = ["Testcase", "Message", "Duration (sec)", "Suite"]
     self.summary.table(
       test_headers,
@@ -228,9 +233,11 @@ class GHAReports(object):
       alignments=["left", "left", "right", "left"],
       cell_width_in_characters=self.cell_width_in_characters,
     )
+    self.summary.end_section()
 
     if len(warns) > 0:
       self.summary.header(f"{MD_STATUSICONS['WARN']} Warnings")
+      self.summary.start_section()
       test_headers = ["Test Case", "Message", "Suite"]
       self.summary.table(
         test_headers,
@@ -238,6 +245,7 @@ class GHAReports(object):
         alignments=["left", "left", "left"],
         cell_width_in_characters=self.cell_width_in_characters,
       )
+      self.summary.end_section()
 
     buffer = self.summary.getvalue()
     for filename in filter(bool, [self._output, self._report]):

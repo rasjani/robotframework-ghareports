@@ -21,6 +21,15 @@ alignment_lookup = {"left": MD_TABLE_ALIGN_LEFT, "right": MD_TABLE_ALIGN_RIGHT, 
 
 
 class MDGen(StringIO):
+  _line_prefix = ""
+
+  def __init__(self, collapsaple=False):
+    super().__init__()
+    self.collapsaple = collapsaple
+    if collapsaple:
+      self._line_prefix = "  "
+    print(f"COLLAPSAPLE: {collapsaple}")
+
   def horizontal_ruler(self):
     self.write(f"{linesep}{MD_HORIZONTAL_RULE}{linesep}")
 
@@ -28,42 +37,45 @@ class MDGen(StringIO):
     self.write(f"{MD_HEADER * level} {text}{linesep * 2}")
 
   def code_block(self, block, language=""):
-    self.write(f"{MD_FENCE}{language}{linesep}{block}{linesep}{MD_FENCE}{linesep * 2}")
+    self.write(f"{self._line_prefix}{MD_FENCE}{language}{linesep}{block}{linesep}{MD_FENCE}{linesep * 2}")
 
   def list(self, items):  # NOQA: A003
     for item in items:
-      self.write(f"{MD_LIST_ELEMENT} {item}{linesep}")
+      self.write(f"{self._line_prefix}{MD_LIST_ELEMENT} {item}{linesep}")
     self.write(linesep)
 
   def ordered_list(self, items):
     for index, item in enumerate(items, 1):
-      self.write(f"{index}. {item}{linesep}")
+      self.write(f"{self._line_prefix}{index}. {item}{linesep}")
     self.write(linesep)
 
   def paragraph(self, text):
-    self.write(f"{text}{linesep}")
+    self.write(f"{self._line_prefix}{text}{linesep}")
 
-  def table(self, headers, rows, alignments=None, cell_width_in_characters=0):
+  def table(self, headers, rows, alignments=None, cell_width_in_characters=0, ignore_collapsaple=False):
     def padalignment(st):
       header = alignment_lookup[st[0]]
       return f"{header[:1]}{'-'*st[1]}{header[1:]}"
 
-    self.write("| ")
+    lp = self._line_prefix
+    if ignore_collapsaple:
+      lp = ""
+    self.write(f"{lp}| ")
     self.write(" | ".join(headers))
     self.write(f" |{linesep}")
     header_lens = list(map(lambda s: len(s) - 1, headers))
     if alignments:
-      self.write("|")
+      self.write(f"{lp}|")
       aligns = list(map(padalignment, zip(alignments, header_lens)))
       self.write("|".join(aligns))
       self.write(f"|{linesep}")
     else:
-      self.write("| ")
+      self.write(f"{lp}| ")
       self.write(" | ".join("-" * len(headers)))
       self.write(f" |{linesep}")
 
     for row in rows:
-      self.write("| ")
+      self.write(f"{lp}| ")
       for cell in row:
         cell = str(cell)
         if "\n" in cell:
@@ -76,6 +88,14 @@ class MDGen(StringIO):
 
   def link(self, text, url):
     self.write(f"[{text}]({url}){linesep}")
+
+  def start_section(self):
+    if self.collapsaple:
+      self.write("<details>\n  <summary>Show Details ...</summary>\n\n")
+
+  def end_section(self):
+    if self.collapsaple:
+      self.write("</details>\n\n")
 
 
 def main():
