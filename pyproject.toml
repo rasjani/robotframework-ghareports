@@ -75,3 +75,10 @@ dev = [
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra "
+testpaths = [
+    "utest",
+]
