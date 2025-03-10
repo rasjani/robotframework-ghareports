@@ -8,6 +8,10 @@ from time import time_ns
 from robot.libraries.BuiltIn import BuiltIn
 
 
+def filter_non_requested(value):
+  return value[0] is not None
+
+
 @wrapt.decorator
 def skip_if_not_initialized(wrapped, instance, args, kwargs):
   if not instance.initialized:
@@ -178,6 +182,7 @@ class GHAReports(object):
       total_duration = 0
     else:
       total_duration = round((self.stop_ts - self.start_ts) / 1000, 1)
+
     return (
       [[stats["pass"], stats["fail"], stats["skip"], stats["total"], stats["passrate"], total_duration]],
       passed,
@@ -241,7 +246,6 @@ class GHAReports(object):
       cell_width_in_characters=self.cell_width_in_characters,
     )
     self.summary.end_section()
-
     if len(warns) > 0:
       self.summary.header(f"{MD_STATUSICONS['WARN']} Warnings")
       self.summary.start_section()
@@ -254,10 +258,11 @@ class GHAReports(object):
       )
       self.summary.end_section()
 
-    buffer = self.summary.getvalue()
-    for filename in filter(bool, [self._output, self._report]):
+    for filename, buffer in filter(
+      filter_non_requested, [(self._output, self.summary.gh_summary), (self._report, self.summary.full_summary)]
+    ):
       try:
         print(f"GHAReports writing a summary file to {filename}", file=sys.stderr)
-        Path(filename).write_text(buffer, encoding="utf-8")
+        Path(filename).write_text(buffer.getvalue(), encoding="utf-8")
       except Exception as e:  # NOQA: BLE001
-        print(f"GHAReports encountered an errow while writing to {filename}:\n{e}", file=sys.stderr)
+        print(f"GHAReports encountered an errorw while writing to {filename}:\n{e}", file=sys.stderr)
