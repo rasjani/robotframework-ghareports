@@ -2,7 +2,9 @@
 from io import StringIO
 from os import linesep
 from textwrap import wrap
+import sys
 
+MAX_GH_SUMMARY_SIZE = 1024000
 MD_FENCE = "```"
 MD_HEADER = "#"
 MD_HORIZONTAL_RULE = "---"
@@ -20,15 +22,19 @@ MD_STATUSICONS = {"PASS": "✅", "FAIL": "❌", "SKIP": "⏩", "WARN": "⚠"}
 alignment_lookup = {"left": MD_TABLE_ALIGN_LEFT, "right": MD_TABLE_ALIGN_RIGHT, "center": MD_TABLE_ALIGN_CENTER}
 
 
-class MDGen(StringIO):
+class MDGen:
   _line_prefix = ""
 
   def __init__(self, collapsaple=False):
-    super().__init__()
+    self.gh_summary = StringIO()
+    self.full_summary = StringIO()
     self.collapsaple = collapsaple
     if collapsaple:
       self._line_prefix = "  "
-    print(f"COLLAPSAPLE: {collapsaple}")
+
+  def write(self, text):
+    self.gh_summary.write(text)
+    self.full_summary.write(text)
 
   def horizontal_ruler(self):
     self.write(f"{linesep}{MD_HORIZONTAL_RULE}{linesep}")
@@ -55,36 +61,51 @@ class MDGen(StringIO):
   def table(self, headers, rows, alignments=None, cell_width_in_characters=0, ignore_collapsaple=False):
     def padalignment(st):
       header = alignment_lookup[st[0]]
-      return f"{header[:1]}{'-'*st[1]}{header[1:]}"
+      return f"{header[:1]}{'-' * st[1]}{header[1:]}"
+
+    temp_target = StringIO()
 
     lp = self._line_prefix
     if ignore_collapsaple:
       lp = ""
-    self.write(f"{lp}| ")
-    self.write(" | ".join(headers))
-    self.write(f" |{linesep}")
+    temp_target.write(f"{lp}| ")
+    temp_target.write(" | ".join(headers))
+    temp_target.write(f" |{linesep}")
     header_lens = list(map(lambda s: len(s) - 1, headers))
     if alignments:
-      self.write(f"{lp}|")
+      temp_target.write(f"{lp}|")
       aligns = list(map(padalignment, zip(alignments, header_lens)))
-      self.write("|".join(aligns))
-      self.write(f"|{linesep}")
+      temp_target.write("|".join(aligns))
+      temp_target.write(f"|{linesep}")
     else:
-      self.write(f"{lp}| ")
-      self.write(" | ".join("-" * len(headers)))
-      self.write(f" |{linesep}")
+      temp_target.write(f"{lp}| ")
+      temp_target.write(" | ".join("-" * len(headers)))
+      temp_target.write(f" |{linesep}")
+
+    header = temp_target.getvalue()
 
     for row in rows:
-      self.write(f"{lp}| ")
+      temp_target.write(f"{lp}| ")
       for cell in row:
         cell = str(cell)
         if "\n" in cell:
           cell = "<br/>".join(cell.split("\n"))
         if cell_width_in_characters != 0:
           cell = "<br/>".join(wrap(cell, cell_width_in_characters))
-        self.write(f"{cell} |")
-      self.write(f"{linesep}")
-    self.write(linesep)
+        temp_target.write(f"{cell} |")
+      temp_target.write(f"{linesep}")
+    temp_target.write(linesep)
+
+    self.full_summary.write(temp_target.getvalue())
+
+    size = sys.getsizeof(self.gh_summary.getvalue()) + sys.getsizeof(temp_target.getvalue())
+
+    print(f"XXX 1: {size} {MAX_GH_SUMMARY_SIZE} {size < MAX_GH_SUMMARY_SIZE}", file=sys.stderr)
+    if sys.getsizeof(self.gh_summary.getvalue()) + sys.getsizeof(temp_target.getvalue()) < MAX_GH_SUMMARY_SIZE:
+      self.gh_summary.write(temp_target.getvalue())
+    else:
+      self.gh_summary.write(header)
+      self.gh_summary.write(f"Due to size limits, this section was not written to GitHub Summary report |{linesep}")
 
   def link(self, text, url):
     self.write(f"[{text}]({url}){linesep}")
