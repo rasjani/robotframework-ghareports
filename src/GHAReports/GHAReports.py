@@ -225,6 +225,16 @@ class GHAReports(object):
       ignore_collapsaple=True,
     )
 
+    if len(envs) > 0:
+      self.summary.header("Environment Variables")
+      env_headers = ["Variable", "Value"]
+      self.summary.table(
+        env_headers,
+        envs,
+        alignments=["left", "right"],
+        ignore_collapsaple=True,
+      )
+
     self.summary.header(f"{MD_STATUSICONS['PASS']} Passing tests")
     self.summary.start_section()
     test_headers = ["Testcase", "Duration (sec)", "Suite"]
@@ -267,15 +277,6 @@ class GHAReports(object):
         cell_width_in_characters=self.cell_width_in_characters,
       )
       self.summary.end_section()
-
-    if len(envs) > 0:
-      self.summary.header("Environment Variables")
-      env_headers = ["Variable", "Value"]
-      self.summary.table(
-        env_headers,
-        envs,
-        alignments=["left", "right"],
-      )
 
     for filename, buffer in filter(
       filter_non_requested, [(self._output, self.summary.gh_summary), (self._report, self.summary.full_summary)]

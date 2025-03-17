@@ -66,3 +66,27 @@ or via standalone tool:
 ```shell
 ghareports -r output.xml -m example_step_summary.md
 ```
+
+In some cases one would want to log environment variables to the summary page. For example, if same test assets are executed against different environments and env value is coming off from action's input. This can be archived by setting each input as env variable in job's env section like this:
+
+```yaml
+jobs:
+  build:
+    env:
+      ENVIRONMENT: ${{ inputs.TEST_ENV }}
+      BROWSER: ${{ inputs.DEFAULT_BROWSER }}
+      RERUN_FAILED: ${{ inputs.RERUN_FAILED }}
+```
+
+and then passing a list of comma separated list to  listener or standalone tool like this:
+
+```shell
+# listener
+robot --listener GHAReports:env_variables=ENVIRONMENT,BROWSER,RERUN_FAILED
+```
+
+```shell
+  ghareports -r output.xml -e ENVIRONMENT,BROWSER,RERUN_FAILED
+```
+
+
