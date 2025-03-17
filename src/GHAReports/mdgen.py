@@ -98,9 +98,6 @@ class MDGen:
 
     self.full_summary.write(temp_target.getvalue())
 
-    size = sys.getsizeof(self.gh_summary.getvalue()) + sys.getsizeof(temp_target.getvalue())
-
-    print(f"XXX 1: {size} {MAX_GH_SUMMARY_SIZE} {size < MAX_GH_SUMMARY_SIZE}", file=sys.stderr)
     if sys.getsizeof(self.gh_summary.getvalue()) + sys.getsizeof(temp_target.getvalue()) < MAX_GH_SUMMARY_SIZE:
       self.gh_summary.write(temp_target.getvalue())
     else:
