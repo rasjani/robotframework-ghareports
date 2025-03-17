@@ -42,11 +42,12 @@ class GHAReports(object):
   # suite attributes: name test_cases  hostname id package timestamp properties file log url stdout stderr
   # case attributes: name classname elapsed_sec stdout stderr assertions timestamp status category file line log group url
 
-  def __init__(self, cell_width_in_characters=0, report_file=None, collapsaple=True, as_listener=True):
+  def __init__(self, cell_width_in_characters=0, report_file=None, collapsaple=True, as_listener=True, env_variables=None):
     self._rf = BuiltIn()
     self.as_listener = as_listener
     self._output = os.environ.get("GITHUB_STEP_SUMMARY", None)
     self.cell_width_in_characters = cell_width_in_characters
+    self.env_variables = env_variables
 
     if self._output:
       self.initialized = True
@@ -149,6 +150,8 @@ class GHAReports(object):
     failed = []
     skipped = []
     warns = []
+    envs = []
+
     for suitename in self._testcases.keys():
       for testname in self._testcases[suitename].keys():
         stats["total"] += 1
@@ -183,12 +186,19 @@ class GHAReports(object):
     else:
       total_duration = round((self.stop_ts - self.start_ts) / 1000, 1)
 
+    if self.env_variables is not None:
+      for key in self.env_variables.split(","):
+        val = os.environ.get(key, None)
+        if val is not None:
+          envs.append((key, val))
+
     return (
       [[stats["pass"], stats["fail"], stats["skip"], stats["total"], stats["passrate"], total_duration]],
       passed,
       failed,
       skipped,
       warns,
+      envs,
     )
 
   @skip_if_not_initialized
@@ -196,7 +206,7 @@ class GHAReports(object):
     if self.as_listener:
       self.stop_ts = getmsts()
 
-    stats, passed, failed, skipped, warns = self._generate_report_structure()
+    stats, passed, failed, skipped, warns, envs = self._generate_report_structure()
     self.summary.horizontal_ruler()
     test_headers = [
       f"Passed {MD_STATUSICONS['PASS']}",
@@ -257,6 +267,15 @@ class GHAReports(object):
         cell_width_in_characters=self.cell_width_in_characters,
       )
       self.summary.end_section()
+
+    if len(envs) > 0:
+      self.summary.header("Environment Variables")
+      env_headers = ["Variable", "Value"]
+      self.summary.table(
+        env_headers,
+        envs,
+        alignments=["left", "right"],
+      )
 
     for filename, buffer in filter(
       filter_non_requested, [(self._output, self.summary.gh_summary), (self._report, self.summary.full_summary)]

@@ -6,8 +6,8 @@ import argparse
 
 
 class GHAReportsVisitor(ResultVisitor):
-  def __init__(self, cell_width_in_characters, markdown_file=None):
-    self.sum = GHAReports(cell_width_in_characters, markdown_file, True, False)
+  def __init__(self, cell_width_in_characters, markdown_file=None, env_variables=None):
+    self.sum = GHAReports(cell_width_in_characters, markdown_file, True, False, env_variables)
 
   def start_suite(self, suite):
     self.sum.start_suite(suite, None)
@@ -50,6 +50,15 @@ def main():
     type=int,
     help="Amount of characters in single row in table cell",
   )
+  parser.add_argument(
+    "-e",
+    "--envs",
+    default=None,
+    metavar="ENV1(,ENV2,...)",
+    dest="envs",
+    type=str,
+    help="Comma separated list of environment variables to include in summary",
+  )
 
   args = parser.parse_args()
 
@@ -60,9 +69,9 @@ def main():
   result = ExecutionResult(args.robotlog)
   visitor = None
   if args.markdown:
-    visitor = GHAReportsVisitor(args.cell_width_in_characters, markdown_file=args.markdown)
+    visitor = GHAReportsVisitor(args.cell_width_in_characters, markdown_file=args.markdown, env_variables=args.envs)
   else:
-    visitor = GHAReportsVisitor(args.cell_width_in_characters)
+    visitor = GHAReportsVisitor(args.cell_width_in_characters, env_variables=args.envs)
 
   result.visit(visitor)
 
