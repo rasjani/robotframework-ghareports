@@ -132,7 +132,7 @@ class GHAReports(object):
     attrs["duration"] = result.elapsedtime
     attrs["suite"] = self._current_suite
     attrs["status"] = result.status
-    attrs["message"] = result.message
+    attrs["message"] = result.message.replace("|", "&#124;")
     self._testcases[self._current_suite][current_case].update(attrs)
     self._current_case = None
 
