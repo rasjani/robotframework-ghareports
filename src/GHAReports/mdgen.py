@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from io import StringIO
-from os import linesep
 from textwrap import wrap
 import sys
 
@@ -16,6 +15,7 @@ MD_LIST_ELEMENT = "*"
 MD_TABLE_ALIGN_LEFT = ":--"
 MD_TABLE_ALIGN_RIGHT = "--:"
 MD_TABLE_ALIGN_CENTER = ":-:"
+LINESEP = "\n"
 
 
 MD_STATUSICONS = {"PASS": "✅", "FAIL": "❌", "SKIP": "⏩", "WARN": "⚠"}
@@ -37,26 +37,26 @@ class MDGen:
     self.full_summary.write(text)
 
   def horizontal_ruler(self):
-    self.write(f"{linesep}{MD_HORIZONTAL_RULE}{linesep}")
+    self.write(f"{LINESEP}{MD_HORIZONTAL_RULE}{LINESEP}")
 
   def header(self, text, level=1):
-    self.write(f"{MD_HEADER * level} {text}{linesep * 2}")
+    self.write(f"{MD_HEADER * level} {text}{LINESEP * 2}")
 
   def code_block(self, block, language=""):
-    self.write(f"{self._line_prefix}{MD_FENCE}{language}{linesep}{block}{linesep}{MD_FENCE}{linesep * 2}")
+    self.write(f"{self._line_prefix}{MD_FENCE}{language}{LINESEP}{block}{LINESEP}{MD_FENCE}{LINESEP * 2}")
 
   def list(self, items):  # NOQA: A003
     for item in items:
-      self.write(f"{self._line_prefix}{MD_LIST_ELEMENT} {item}{linesep}")
-    self.write(linesep)
+      self.write(f"{self._line_prefix}{MD_LIST_ELEMENT} {item}{LINESEP}")
+    self.write(LINESEP)
 
   def ordered_list(self, items):
     for index, item in enumerate(items, 1):
-      self.write(f"{self._line_prefix}{index}. {item}{linesep}")
-    self.write(linesep)
+      self.write(f"{self._line_prefix}{index}. {item}{LINESEP}")
+    self.write(LINESEP)
 
   def paragraph(self, text):
-    self.write(f"{self._line_prefix}{text}{linesep}")
+    self.write(f"{self._line_prefix}{text}{LINESEP}")
 
   def table(self, headers, rows, alignments=None, cell_width_in_characters=0, ignore_collapsaple=False):
     def padalignment(st):
@@ -76,17 +76,17 @@ class MDGen:
       lp = ""
     temp_target.write(f"{lp}| ")
     temp_target.write(" | ".join(headers))
-    temp_target.write(f" |{linesep}")
+    temp_target.write(f" |{LINESEP}")
     header_lens = list(map(calc_header_len, headers))
     if alignments:
       temp_target.write(f"{lp}|")
       aligns = list(map(padalignment, zip(alignments, header_lens)))
       temp_target.write("|".join(aligns))
-      temp_target.write(f"|{linesep}")
+      temp_target.write(f"|{LINESEP}")
     else:
       temp_target.write(f"{lp}| ")
       temp_target.write(" | ".join("-" * len(headers)))
-      temp_target.write(f" |{linesep}")
+      temp_target.write(f" |{LINESEP}")
 
     header = temp_target.getvalue()
 
@@ -99,8 +99,8 @@ class MDGen:
         if cell_width_in_characters != 0:
           cell = "<br/>".join(wrap(cell, cell_width_in_characters))
         temp_target.write(f"{cell} |")
-      temp_target.write(f"{linesep}")
-    temp_target.write(linesep)
+      temp_target.write(f"{LINESEP}")
+    temp_target.write(LINESEP)
 
     self.full_summary.write(temp_target.getvalue())
 
@@ -108,10 +108,10 @@ class MDGen:
       self.gh_summary.write(temp_target.getvalue())
     else:
       self.gh_summary.write(header)
-      self.gh_summary.write(f"Due to size limits, this section was not written to GitHub Summary report |{linesep}")
+      self.gh_summary.write(f"Due to size limits, this section was not written to GitHub Summary report |{LINESEP}")
 
   def link(self, text, url):
-    self.write(f"[{text}]({url}){linesep}")
+    self.write(f"[{text}]({url}){LINESEP}")
 
   def start_section(self):
     if self.collapsaple:
