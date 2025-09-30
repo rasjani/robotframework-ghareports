@@ -63,6 +63,12 @@ class MDGen:
       header = alignment_lookup[st[0]]
       return f"{header[:1]}{'-' * st[1]}{header[1:]}"
 
+    def calc_header_len(st):
+      if any(ord(ch) > 255 for ch in st):
+        return len(st)
+
+      return len(st) - 1
+
     temp_target = StringIO()
 
     lp = self._line_prefix
@@ -71,7 +77,7 @@ class MDGen:
     temp_target.write(f"{lp}| ")
     temp_target.write(" | ".join(headers))
     temp_target.write(f" |{linesep}")
-    header_lens = list(map(lambda s: len(s) - 1, headers))
+    header_lens = list(map(calc_header_len, headers))
     if alignments:
       temp_target.write(f"{lp}|")
       aligns = list(map(padalignment, zip(alignments, header_lens)))
