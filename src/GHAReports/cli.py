@@ -6,8 +6,31 @@ import argparse
 
 
 class GHAReportsVisitor(ResultVisitor):
-  def __init__(self, cell_width_in_characters, markdown_file=None, env_variables=None):
-    self.sum = GHAReports(cell_width_in_characters, markdown_file, True, False, env_variables)
+  def __init__(
+    self,
+    cell_width_in_characters,
+    markdown_file=None,
+    include_totals=True,
+    include_passes=True,
+    include_skipped=True,
+    include_fails=True,
+    include_warnings=True,
+    include_envs=True,
+    env_variables=None,
+  ):
+    self.sum = GHAReports(
+      cell_width_in_characters,
+      markdown_file,
+      True,
+      False,
+      include_totals,
+      include_passes,
+      include_skipped,
+      include_fails,
+      include_warnings,
+      include_envs,
+      env_variables,
+    )
 
   def start_suite(self, suite):
     self.sum.start_suite(suite, None)
@@ -60,6 +83,51 @@ def main():
     help="Comma separated list of environment variables to include in summary",
   )
 
+  parser.add_argument(
+    "--totals",
+    default=True,
+    dest="include_totals",
+    type=bool,
+    action=argparse.BooleanOptionalAction,
+    help="Include/exclude totals from final report",
+  )
+
+  parser.add_argument(
+    "--fails",
+    default=True,
+    dest="include_fails",
+    type=bool,
+    action=argparse.BooleanOptionalAction,
+    help="Include/exclude fails from final report",
+  )
+
+  parser.add_argument(
+    "--passes",
+    default=True,
+    dest="include_passes",
+    type=bool,
+    action=argparse.BooleanOptionalAction,
+    help="Include/exclude passes from final report",
+  )
+
+  parser.add_argument(
+    "--skipped",
+    default=True,
+    dest="include_skipped",
+    type=bool,
+    action=argparse.BooleanOptionalAction,
+    help="Include/exclude skipped from final report",
+  )
+
+  parser.add_argument(
+    "--warnings",
+    default=True,
+    dest="include_warnings",
+    type=bool,
+    action=argparse.BooleanOptionalAction,
+    help="Include/exclude logging from warnings from final report",
+  )
+
   args = parser.parse_args()
 
   if not Path(args.robotlog).exists():
@@ -69,9 +137,26 @@ def main():
   result = ExecutionResult(args.robotlog)
   visitor = None
   if args.markdown:
-    visitor = GHAReportsVisitor(args.cell_width_in_characters, markdown_file=args.markdown, env_variables=args.envs)
+    visitor = GHAReportsVisitor(
+      args.cell_width_in_characters,
+      markdown_file=args.markdown,
+      include_totals=args.include_totals,
+      include_passes=args.include_passes,
+      include_skipped=args.include_skipped,
+      include_fails=args.include_fails,
+      include_warnings=args.include_warnings,
+      env_variables=args.envs,
+    )
   else:
-    visitor = GHAReportsVisitor(args.cell_width_in_characters, env_variables=args.envs)
+    visitor = GHAReportsVisitor(
+      args.cell_width_in_characters,
+      include_totals=args.include_totals,
+      include_passes=args.include_passes,
+      include_skipped=args.include_skipped,
+      include_fails=args.include_fails,
+      include_warnings=args.include_warnings,
+      env_variables=args.envs,
+    )
 
   result.visit(visitor)
 

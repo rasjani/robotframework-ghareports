@@ -5,7 +5,6 @@ from pathlib import Path
 import sys
 from GHAReports.mdgen import MDGen, MD_STATUSICONS
 from time import time_ns
-from robot.libraries.BuiltIn import BuiltIn
 
 
 def filter_non_requested(value):
@@ -33,7 +32,6 @@ class GHAReports(object):
   _testcases = {}
   _output = None
   _report = None
-  _rf = None
   initialized = False
   summary = None
   start_ts = None
@@ -42,13 +40,31 @@ class GHAReports(object):
   # suite attributes: name test_cases  hostname id package timestamp properties file log url stdout stderr
   # case attributes: name classname elapsed_sec stdout stderr assertions timestamp status category file line log group url
 
-  def __init__(self, cell_width_in_characters=0, report_file=None, collapsaple=True, as_listener=True, env_variables=None):
-    self._rf = BuiltIn()
+  def __init__(
+    self,
+    cell_width_in_characters=0,
+    report_file=None,
+    collapsaple=True,
+    as_listener=True,
+    include_totals=True,
+    include_passes=True,
+    include_skipped=True,
+    include_fails=True,
+    include_warnings=True,
+    include_envs=True,
+    env_variables=None,
+  ):
     self.as_listener = as_listener
     self._output = os.environ.get("GITHUB_STEP_SUMMARY", None)
     self.cell_width_in_characters = cell_width_in_characters
     self.env_variables = env_variables
 
+    self.include_totals = include_totals
+    self.include_passes = include_passes
+    self.include_skipped = include_skipped
+    self.include_fails = include_fails
+    self.include_warnings = include_warnings
+    self.include_envs = include_envs
     if self._output:
       self.initialized = True
       self._output = Path(self._output).resolve()
@@ -207,25 +223,27 @@ class GHAReports(object):
       self.stop_ts = getmsts()
 
     stats, passed, failed, skipped, warns, envs = self._generate_report_structure()
-    self.summary.horizontal_ruler()
-    test_headers = [
-      f"Passed {MD_STATUSICONS['PASS']}",
-      f"Failed {MD_STATUSICONS['FAIL']}",
-      f"Skipped {MD_STATUSICONS['SKIP']}",
-      "Total",
-      "Passrate %",
-      "Duration (sec)",
-    ]
-    self.summary.header("Totals")
-    self.summary.table(
-      test_headers,
-      stats,
-      alignments=["center", "center", "center", "center", "right", "right"],
-      cell_width_in_characters=self.cell_width_in_characters,
-      ignore_collapsaple=True,
-    )
 
-    if len(envs) > 0:
+    if self.include_totals:
+      self.summary.horizontal_ruler()
+      test_headers = [
+        f"Passed {MD_STATUSICONS['PASS']}",
+        f"Failed {MD_STATUSICONS['FAIL']}",
+        f"Skipped {MD_STATUSICONS['SKIP']}",
+        "Total",
+        "Passrate %",
+        "Duration (sec)",
+      ]
+      self.summary.header("Totals")
+      self.summary.table(
+        test_headers,
+        stats,
+        alignments=["center", "center", "center", "center", "right", "right"],
+        cell_width_in_characters=self.cell_width_in_characters,
+        ignore_collapsaple=True,
+      )
+
+    if len(envs) > 0 and self.include_envs:
       self.summary.header("Environment Variables")
       env_headers = ["Variable", "Value"]
       self.summary.table(
@@ -235,38 +253,43 @@ class GHAReports(object):
         ignore_collapsaple=True,
       )
 
-    self.summary.header(f"{MD_STATUSICONS['PASS']} Passing tests")
-    self.summary.start_section()
-    test_headers = ["Testcase", "Duration (sec)", "Suite"]
-    self.summary.table(
-      test_headers,
-      passed,
-      alignments=["left", "right", "left"],
-      cell_width_in_characters=self.cell_width_in_characters,
-    )
-    self.summary.end_section()
-    self.summary.header(f"{MD_STATUSICONS['FAIL']} Failing tests")
-    self.summary.start_section()
-    test_headers = ["Testcase", "Message", "Duration (sec)", "Suite"]
-    self.summary.table(
-      test_headers,
-      failed,
-      alignments=["left", "left", "right", "left"],
-      cell_width_in_characters=self.cell_width_in_characters,
-    )
-    self.summary.end_section()
+    if self.include_passes:
+      self.summary.header(f"{MD_STATUSICONS['PASS']} Passing tests")
+      self.summary.start_section()
+      test_headers = ["Testcase", "Duration (sec)", "Suite"]
+      self.summary.table(
+        test_headers,
+        passed,
+        alignments=["left", "right", "left"],
+        cell_width_in_characters=self.cell_width_in_characters,
+      )
+      self.summary.end_section()
 
-    self.summary.header(f"{MD_STATUSICONS['SKIP']} Skipped tests")
-    self.summary.start_section()
-    test_headers = ["Testcase", "Message", "Duration (sec)", "Suite"]
-    self.summary.table(
-      test_headers,
-      skipped,
-      alignments=["left", "left", "right", "left"],
-      cell_width_in_characters=self.cell_width_in_characters,
-    )
-    self.summary.end_section()
-    if len(warns) > 0:
+    if self.include_fails:
+      self.summary.header(f"{MD_STATUSICONS['FAIL']} Failing tests")
+      self.summary.start_section()
+      test_headers = ["Testcase", "Message", "Duration (sec)", "Suite"]
+      self.summary.table(
+        test_headers,
+        failed,
+        alignments=["left", "left", "right", "left"],
+        cell_width_in_characters=self.cell_width_in_characters,
+      )
+      self.summary.end_section()
+
+    if self.include_skipped:
+      self.summary.header(f"{MD_STATUSICONS['SKIP']} Skipped tests")
+      self.summary.start_section()
+      test_headers = ["Testcase", "Message", "Duration (sec)", "Suite"]
+      self.summary.table(
+        test_headers,
+        skipped,
+        alignments=["left", "left", "right", "left"],
+        cell_width_in_characters=self.cell_width_in_characters,
+      )
+      self.summary.end_section()
+
+    if self.include_warnings and len(warns) > 0:
       self.summary.header(f"{MD_STATUSICONS['WARN']} Warnings")
       self.summary.start_section()
       test_headers = ["Test Case", "Message", "Suite"]
