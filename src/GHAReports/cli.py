@@ -87,7 +87,6 @@ def main():
     "--totals",
     default=True,
     dest="include_totals",
-    type=bool,
     action=argparse.BooleanOptionalAction,
     help="Include/exclude totals from final report",
   )
@@ -96,7 +95,6 @@ def main():
     "--fails",
     default=True,
     dest="include_fails",
-    type=bool,
     action=argparse.BooleanOptionalAction,
     help="Include/exclude fails from final report",
   )
@@ -105,7 +103,6 @@ def main():
     "--passes",
     default=True,
     dest="include_passes",
-    type=bool,
     action=argparse.BooleanOptionalAction,
     help="Include/exclude passes from final report",
   )
@@ -114,7 +111,6 @@ def main():
     "--skipped",
     default=True,
     dest="include_skipped",
-    type=bool,
     action=argparse.BooleanOptionalAction,
     help="Include/exclude skipped from final report",
   )
@@ -123,7 +119,6 @@ def main():
     "--warnings",
     default=True,
     dest="include_warnings",
-    type=bool,
     action=argparse.BooleanOptionalAction,
     help="Include/exclude logging from warnings from final report",
   )
