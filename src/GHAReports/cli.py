@@ -17,6 +17,7 @@ class GHAReportsVisitor(ResultVisitor):
     include_warnings=True,
     include_envs=True,
     env_variables=None,
+    overwrite_summary=False,
   ):
     self.sum = GHAReports(
       cell_width_in_characters,
@@ -30,6 +31,7 @@ class GHAReportsVisitor(ResultVisitor):
       include_warnings,
       include_envs,
       env_variables,
+      overwrite_summary,
     )
 
   def start_suite(self, suite):
@@ -123,6 +125,14 @@ def main():
     help="Include/exclude logging from warnings from final report",
   )
 
+  parser.add_argument(
+    "--overwrite-summary",
+    default=False,
+    dest="overwrite_summary",
+    action=argparse.BooleanOptionalAction,
+    help="Overwrite existing github step summary",
+  )
+
   args = parser.parse_args()
 
   if not Path(args.robotlog).exists():
@@ -141,6 +151,7 @@ def main():
       include_fails=args.include_fails,
       include_warnings=args.include_warnings,
       env_variables=args.envs,
+      overwrite_summary=args.overwrite_summary,
     )
   else:
     visitor = GHAReportsVisitor(
@@ -151,6 +162,7 @@ def main():
       include_fails=args.include_fails,
       include_warnings=args.include_warnings,
       env_variables=args.envs,
+      overwrite_summary=args.overwrite_summary,
     )
 
   result.visit(visitor)

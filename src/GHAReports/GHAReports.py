@@ -32,6 +32,7 @@ class GHAReports(object):
   _testcases = {}
   _output = None
   _report = None
+  _append = False
   initialized = False
   summary = None
   start_ts = None
@@ -53,6 +54,7 @@ class GHAReports(object):
     include_warnings=True,
     include_envs=True,
     env_variables=None,
+    overwrite_summary=False,
   ):
     self.as_listener = as_listener
     self._output = os.environ.get("GITHUB_STEP_SUMMARY", None)
@@ -78,6 +80,11 @@ class GHAReports(object):
       print(f"GHAReports is generating extra report file @ {self._report}", file=sys.stderr)
 
     self.summary = MDGen(collapsaple)
+
+    if self._output and self._output.exists() and not overwrite_summary:
+      print(f"GHAReports will append to existing summary file: {self._output!s}", file=sys.stderr)
+      self.summary.write(self._output.read_text(encoding="utf-8"))
+      self._append = True
 
   @skip_if_not_initialized
   def start_suite(self, data, result):  # noqa
@@ -224,6 +231,11 @@ class GHAReports(object):
 
     stats, passed, failed, skipped, warns, envs = self._generate_report_structure()
 
+    header_level = 1
+    if self._append:
+      header_level = 2
+      self.summary.header("Robot Framework Test Summary", level=1)
+
     if self.include_totals:
       self.summary.horizontal_ruler()
       test_headers = [
@@ -234,7 +246,7 @@ class GHAReports(object):
         "Passrate %",
         "Duration (sec)",
       ]
-      self.summary.header("Totals")
+      self.summary.header("Totals", level=header_level)
       self.summary.table(
         test_headers,
         stats,
@@ -244,7 +256,7 @@ class GHAReports(object):
       )
 
     if len(envs) > 0 and self.include_envs:
-      self.summary.header("Environment Variables")
+      self.summary.header("Environment Variables", level=header_level)
       env_headers = ["Variable", "Value"]
       self.summary.table(
         env_headers,
@@ -254,7 +266,7 @@ class GHAReports(object):
       )
 
     if self.include_passes:
-      self.summary.header(f"{MD_STATUSICONS['PASS']} Passing tests")
+      self.summary.header(f"{MD_STATUSICONS['PASS']} Passing tests", level=header_level)
       self.summary.start_section()
       test_headers = ["Testcase", "Duration (sec)", "Suite"]
       self.summary.table(
@@ -266,7 +278,7 @@ class GHAReports(object):
       self.summary.end_section()
 
     if self.include_fails:
-      self.summary.header(f"{MD_STATUSICONS['FAIL']} Failing tests")
+      self.summary.header(f"{MD_STATUSICONS['FAIL']} Failing tests", level=header_level)
       self.summary.start_section()
       test_headers = ["Testcase", "Message", "Duration (sec)", "Suite"]
       self.summary.table(
@@ -278,7 +290,7 @@ class GHAReports(object):
       self.summary.end_section()
 
     if self.include_skipped:
-      self.summary.header(f"{MD_STATUSICONS['SKIP']} Skipped tests")
+      self.summary.header(f"{MD_STATUSICONS['SKIP']} Skipped tests", level=header_level)
       self.summary.start_section()
       test_headers = ["Testcase", "Message", "Duration (sec)", "Suite"]
       self.summary.table(
@@ -290,7 +302,7 @@ class GHAReports(object):
       self.summary.end_section()
 
     if self.include_warnings and len(warns) > 0:
-      self.summary.header(f"{MD_STATUSICONS['WARN']} Warnings")
+      self.summary.header(f"{MD_STATUSICONS['WARN']} Warnings", level=header_level)
       self.summary.start_section()
       test_headers = ["Test Case", "Message", "Suite"]
       self.summary.table(
