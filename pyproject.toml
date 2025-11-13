@@ -70,6 +70,7 @@ dev = [
   "invoke",
   "pdm",
   "pytest",
+  "pytest-github-report",
   "build"
 ]
 

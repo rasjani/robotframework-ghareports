@@ -36,6 +36,8 @@ jobs:
       run: |
         inv ruff
     - name: Tests
+      env:
+        pytest_github_report: true
       run: |
         inv test
     - name: Run example tests
