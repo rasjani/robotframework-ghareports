@@ -56,8 +56,21 @@ class GHAReports(object):
     env_variables=None,
     overwrite_summary=False,
   ):
+    _pabot_index = os.environ.get("PABOTQUEUEINDEX", None)
+    if _pabot_index is not None:
+      try:
+        p_index = int(_pabot_index)
+      except ValueError:
+        pass
+      if p_index == 0:
+        print(
+          "GHAReports running inside pabot is not supported. Use GHAReports during post processing output.xml", file=sys.stderr
+        )
+      return
+
     self.as_listener = as_listener
     self._output = os.environ.get("GITHUB_STEP_SUMMARY", None)
+
     self.cell_width_in_characters = cell_width_in_characters
     self.env_variables = env_variables
 

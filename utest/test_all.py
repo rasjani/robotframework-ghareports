@@ -65,3 +65,11 @@ def test_writing(tmp_path):
     assert extra_report.exists() is True
 
     assert step_summary != extra_report
+
+
+def test_with_pabot():
+  with modified_environ(PABOTQUEUEINDEX="0"):
+    r = GHAReports()
+    assert r.initialized is False
+    assert r._output is None
+    assert r._report is None
