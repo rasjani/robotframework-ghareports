@@ -16,9 +16,6 @@ ignore = ["RUF012", "COM812","RUF100"]
 quote-style = "double"
 indent-style = "space"
 
-[tool.pdm.package-dir]
-robotframework-ghareports = "src/"
-
 [project]
 name = "robotframework-ghareports"
 version = "0.9.1"
@@ -52,9 +49,19 @@ dependencies = [
     "robotframework >= 4.0.0",
     "wrapt",
 ]
+
 license = {text = "GPLV3"}
 requires-python = ">=3.8"
 
+[dependency-groups]
+dev = [
+    "ruff",
+    "pytest",
+    "twine",
+    "python-language-server[all]",
+    "invoke",
+    "pytest-github-report",
+]
 [project.scripts]
 ghareports = "GHAReports.cli:main"
 
@@ -68,15 +75,18 @@ dev = [
   "python-language-server[all]",
   "ruff",
   "invoke",
-  "pdm",
   "pytest",
   "pytest-github-report",
   "build"
 ]
 
 [build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
+requires = ["uv_build>=0.11.2,<0.12"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "GHAReports"
+module-root = "src"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
