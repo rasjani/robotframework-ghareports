@@ -19,7 +19,7 @@ indent-style = "space"
 [project]
 name = "robotframework-ghareports"
 version = "0.9.1"
-description = "Simple github action summary report for robotframework"
+description = "Generate GitHub Actions job summaries from Robot Framework results"
 readme = "README.md"
 authors = [
     {name = "Jani Mikkonen", email = "jani.mikkonen@gmail.com"},
@@ -68,6 +68,7 @@ ghareports = "GHAReports.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/rasjani/robotframework-ghareports"
+Repository = "https://github.com/rasjani/robotframework-ghareports"
 
 [project.optional-dependencies]
 dev = [

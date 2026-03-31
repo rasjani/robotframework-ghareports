@@ -1,92 +1,218 @@
-robotframework-ghareports
-=========================
+# robotframework-ghareports
 
+`robotframework-ghareports` generates a GitHub Actions job summary from Robot Framework results.
 
-This project enables robot framework to generate Github Job Summary for a testrun. You can either use it as listener or standalone command
-line tool. When executed, it checks if environment variable GITHUB_STEP_SUMMARY exists and if it does, it exposes test results
-to a PR - example output looks something like [this](https://github.com/rasjani/robotframework-ghareports/blob/main/example_step_summary.md)
+It supports two workflows:
 
-Main purpose for standalone tool is that with it, you can use pabot or rerun failed test cases once you have combined the logs to a single
-output.xml, you can use  `ghareports` to generate the summary.
+- Use it as a Robot Framework listener during a normal `robot` run.
+- Use it as a standalone CLI after execution, for example after pabot has merged results into a single `output.xml`.
+
+The generated summary is written to `GITHUB_STEP_SUMMARY` when that environment variable is available. You can also write the same report to a separate Markdown file for local inspection or archival.
+
+Example output: [example_step_summary.md](./example_step_summary.md)
+
+## What It Reports
+
+The generated Markdown can include:
+
+- Totals: passed, failed, skipped, total, pass rate, duration
+- Passing tests
+- Failing tests with failure messages
+- Skipped tests with skip messages
+- Warnings logged during test execution
+- Selected environment variables
+
+Long table cells can be wrapped to improve readability in GitHub's summary view.
 
 ## Installation
 
-```shell
-python -mpip install robotframework-ghareports
+Install from PyPI:
+
+```bash
+python -m pip install robotframework-ghareports
 ```
 
-## Usage as listener
+The package exposes the `ghareports` command-line entry point.
 
-```shell
-robot --listener GHAReports .
+## Usage
+
+### Listener mode
+
+Use the listener during a regular Robot Framework run:
+
+```bash
+robot --listener GHAReports path/to/tests
 ```
 
-## Usage as standalone tool
+If `GITHUB_STEP_SUMMARY` is set, the listener writes directly to the GitHub Actions job summary.
 
-```
-python -mGHARerports -r path/to/robot/output.xml
-```
+### CLI mode
 
-Help that shows all available arguments
+Use the CLI when you already have a Robot Framework `output.xml`:
 
-```
-ghareports --help
+```bash
+ghareports --robotlog output.xml
 ```
 
-## Additional
+You can also invoke it as a module:
 
-If you want to limit the width of the tables in the summary, you can provide an argument to the listener like this:
-
-```shell
-robot --listener GHAReports:35 .
+```bash
+python -m GHAReports --robotlog output.xml
 ```
 
-or
-```shell
-python -mGHAReports -r output.xml --width=35
+CLI mode is useful when results are produced in multiple steps and combined afterward before generating the final summary.
+
+## Writing to an Extra Markdown File
+
+If you want a standalone Markdown report in addition to the GitHub summary, provide an output file.
+
+Listener mode:
+
+```bash
+robot --listener GHAReports:report_file=extra_summary.md path/to/tests
 ```
 
-This will split each cell with string content at every 35 characters into a new line.
+CLI mode:
 
-And if you want to generate the summary even  if a) you are not running in Github *or* you want to generate extra summary file independent of
-Github actions, pass report_file argument to the listener like this:
-
-```shell
-robot --listener GHAReports:report_file=extra_summary.md
-```
-or
-
-```shell
-robot --listener GHAReports:34:extra_summary.md
+```bash
+ghareports --robotlog output.xml --markdown extra_summary.md
 ```
 
-or via standalone tool:
+This is also the recommended way to inspect output locally when you are not running inside GitHub Actions.
 
+## Controlling Table Cell Width
 
-```shell
-ghareports -r output.xml -m example_step_summary.md
+To wrap long table cells after a fixed number of characters, set a width.
+
+Listener mode:
+
+```bash
+robot --listener GHAReports:35 path/to/tests
 ```
 
-In some cases one would want to log environment variables to the summary page. For example, if same test assets are executed against different environments and env value is coming off from action's input. This can be archived by setting each input as env variable in job's env section like this:
+CLI mode:
+
+```bash
+ghareports --robotlog output.xml --width 35
+```
+
+This is especially useful for long failure messages.
+
+## Including Environment Variables
+
+You can include selected environment variables in the generated summary. This is useful when the same test assets run against multiple environments or browser combinations and that context should be visible in the job summary.
+
+Example GitHub Actions job configuration:
 
 ```yaml
 jobs:
-  build:
+  test:
+    runs-on: ubuntu-latest
     env:
       ENVIRONMENT: ${{ inputs.TEST_ENV }}
       BROWSER: ${{ inputs.DEFAULT_BROWSER }}
       RERUN_FAILED: ${{ inputs.RERUN_FAILED }}
 ```
 
-and then passing a list of comma separated list to  listener or standalone tool like this:
+Listener mode:
 
-```shell
-# listener
-robot --listener GHAReports:env_variables=ENVIRONMENT,BROWSER,RERUN_FAILED
+```bash
+robot --listener GHAReports:env_variables=ENVIRONMENT,BROWSER,RERUN_FAILED path/to/tests
 ```
 
-```shell
-  ghareports -r output.xml -e ENVIRONMENT,BROWSER,RERUN_FAILED
+CLI mode:
+
+```bash
+ghareports --robotlog output.xml --envs ENVIRONMENT,BROWSER,RERUN_FAILED
 ```
 
+Only variables that exist in the environment are included.
 
+## CLI Reference
+
+```text
+ghareports --robotlog FILE [options]
+```
+
+Common options:
+
+- `-r`, `--robotlog FILE`: Robot Framework `output.xml` path. Default: `output.xml`
+- `-m`, `--markdown FILE`: write the full report to an extra Markdown file
+- `-w`, `--width N`: wrap table cell content after `N` characters
+- `-e`, `--envs ENV1,ENV2,...`: include selected environment variables in the summary
+- `--[no-]totals`: include or exclude totals section
+- `--[no-]passes`: include or exclude passing tests section
+- `--[no-]fails`: include or exclude failing tests section
+- `--[no-]skipped`: include or exclude skipped tests section
+- `--[no-]warnings`: include or exclude warnings section
+- `--[no-]overwrite-summary`: overwrite an existing GitHub summary instead of appending to it
+
+See all options with:
+
+```bash
+ghareports --help
+```
+
+## GitHub Actions Example
+
+Using the listener directly in a workflow step:
+
+```yaml
+- name: Run Robot Framework tests
+  run: robot --listener GHAReports tests/
+```
+
+Generating the summary afterward from an existing result file:
+
+```yaml
+- name: Run Robot Framework tests
+  run: robot tests/
+
+- name: Publish GitHub summary
+  run: ghareports --robotlog output.xml
+```
+
+## `pabot` Note
+
+Direct listener use inside `pabot` is intentionally not supported. When `PABOTQUEUEINDEX` is detected, the listener exits without initializing.
+
+For parallel execution, the expected workflow is:
+
+1. Run tests with `pabot`
+2. Merge results into a single `output.xml`
+3. Run `ghareports --robotlog output.xml`
+
+## Local Development
+
+Source code lives under `src/GHAReports`. Tests are in `utest/`, and the example Robot assets are under `example/`.
+
+Install development dependencies with your preferred toolchain, then use the repository tasks:
+
+```bash
+invoke formatcheck
+invoke check
+python -m pytest
+```
+
+Useful local example commands:
+
+```bash
+export GITHUB_STEP_SUMMARY=$(pwd)/example_summary.md
+invoke example
+invoke examplecilistener
+invoke examplecicli
+```
+
+`invoke example` regenerates the sample summary from the demo suites. The `examplecilistener` and `examplecicli` tasks are useful when validating the listener and CLI flows locally.
+
+## Project Layout
+
+- `src/GHAReports/GHAReports.py`: listener implementation and summary assembly
+- `src/GHAReports/cli.py`: CLI entry point for processing `output.xml`
+- `src/GHAReports/mdgen.py`: Markdown generation helpers
+- `utest/test_all.py`: unit tests
+- `example/`: Robot Framework demo suites and resources
+
+## License
+
+GPLv3
