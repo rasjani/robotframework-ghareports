@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+  pull-requests: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref }}
@@ -25,7 +28,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install Python dependencies
-      run: uv sync --locked --all-extras --dev
+      run: uv sync --all-extras --dev
     - name: Run format check
       if: ${{ matrix.python-version == '3.14' }}
       run: |
@@ -37,8 +40,12 @@ jobs:
     - name: Tests
       env:
         pytest_github_report: true
+        GITHUB_TOKEN: ${{ github.token }}
       run: |
         uv run inv test
     - name: Run example tests
+      if: ${{ matrix.python-version == '3.14' }}
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
       run: |
         uv run inv examplecicli

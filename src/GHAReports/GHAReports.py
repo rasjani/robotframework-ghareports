@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import json
 import os
 import wrapt
 from pathlib import Path
 import sys
 from GHAReports.mdgen import MDGen, MD_STATUSICONS
 from time import time_ns
+from urllib import error, request
 
 
 def filter_non_requested(value):
@@ -23,6 +25,78 @@ def getmsts():
   return time_ns() // 1000000
 
 
+def is_truthy(value):
+  if isinstance(value, bool):
+    return value
+  if value is None:
+    return False
+  return str(value).strip().lower() in ("1", "true", "yes", "on")
+
+
+def get_pr_number_from_event():
+  event_path = os.environ.get("GITHUB_EVENT_PATH", None)
+  if event_path is None:
+    return None
+
+  try:
+    payload = json.loads(Path(event_path).read_text(encoding="utf-8"))
+  except (OSError, json.JSONDecodeError):
+    return None
+
+  pull_request = payload.get("pull_request", None)
+  if isinstance(pull_request, dict):
+    return pull_request.get("number", None)
+
+  issue = payload.get("issue", None)
+  if isinstance(issue, dict) and issue.get("pull_request", None) is not None:
+    return issue.get("number", None)
+
+  return None
+
+
+def get_pr_comment_context():
+  token = os.environ.get("GITHUB_TOKEN", None) or os.environ.get("GH_TOKEN", None)
+  repository = os.environ.get("GITHUB_REPOSITORY", None)
+  event_path = os.environ.get("GITHUB_EVENT_PATH", None)
+  pr_number = get_pr_number_from_event()
+
+  missing = []
+  if token is None:
+    missing.append("GITHUB_TOKEN or GH_TOKEN")
+  if repository is None:
+    missing.append("GITHUB_REPOSITORY")
+  if event_path is None:
+    missing.append("GITHUB_EVENT_PATH")
+  elif pr_number is None:
+    missing.append("pull request number in GITHUB_EVENT_PATH payload")
+
+  return token, repository, pr_number, missing
+
+
+def github_request(url, method="GET", payload=None, token=None):
+  headers = {
+    "Accept": "application/vnd.github+json",
+    "User-Agent": "robotframework-ghareports",
+  }
+  data = None
+  if token:
+    headers["Authorization"] = f"Bearer {token}"
+  if payload is not None:
+    data = json.dumps(payload).encode("utf-8")
+    headers["Content-Type"] = "application/json"
+
+  req = request.Request(url, data=data, headers=headers, method=method)
+  with request.urlopen(req) as response:
+    return json.loads(response.read().decode("utf-8"))
+
+
+def ensure_report_title(text):
+  stripped = text.lstrip()
+  if stripped.startswith("# Robot Framework Test Summary"):
+    return text
+  return f"# Robot Framework Test Summary\n\n{text}"
+
+
 class GHAReports(object):
   ROBOT_LISTENER_API_VERSION = 3
   _suites = {}
@@ -37,6 +111,7 @@ class GHAReports(object):
   summary = None
   start_ts = None
   stop_ts = None
+  pr_comment = False
 
   # suite attributes: name test_cases  hostname id package timestamp properties file log url stdout stderr
   # case attributes: name classname elapsed_sec stdout stderr assertions timestamp status category file line log group url
@@ -55,6 +130,7 @@ class GHAReports(object):
     include_envs=True,
     env_variables=None,
     overwrite_summary=False,
+    pr_comment=False,
   ):
     _pabot_index = os.environ.get("PABOTQUEUEINDEX", None)
     if _pabot_index is not None:
@@ -80,6 +156,7 @@ class GHAReports(object):
     self.include_fails = include_fails
     self.include_warnings = include_warnings
     self.include_envs = include_envs
+    self.pr_comment = is_truthy(pr_comment)
     if self._output:
       self.initialized = True
       self._output = Path(self._output).resolve()
@@ -95,9 +172,11 @@ class GHAReports(object):
     self.summary = MDGen(collapsaple)
 
     if self._output and self._output.exists() and not overwrite_summary:
-      print(f"GHAReports will append to existing summary file: {self._output!s}", file=sys.stderr)
-      self.summary.write(self._output.read_text(encoding="utf-8"))
-      self._append = True
+      existing_summary = self._output.read_text(encoding="utf-8")
+      if existing_summary.strip():
+        print(f"GHAReports will append to existing summary file: {self._output!s}", file=sys.stderr)
+        self.summary.write(existing_summary)
+        self._append = True
 
   @skip_if_not_initialized
   def start_suite(self, data, result):  # noqa
@@ -237,6 +316,47 @@ class GHAReports(object):
       envs,
     )
 
+  def _write_pull_request_comment(self):
+    if not self.pr_comment:
+      return
+
+    token, repository, pr_number, missing = get_pr_comment_context()
+    if len(missing) > 0:
+      print(
+        "GHAReports could not publish a pull request comment because the following required context is missing: "
+        + ", ".join(missing),
+        file=sys.stderr,
+      )
+      return
+
+    api_url = os.environ.get("GITHUB_API_URL", "https://api.github.com").rstrip("/")
+    marker = "<!-- robotframework-ghareports -->"
+    comment_body = f"{marker}\n{ensure_report_title(self.summary.full_summary.getvalue())}"
+    comments_url = f"{api_url}/repos/{repository}/issues/{pr_number}/comments"
+
+    try:
+      comments = github_request(comments_url, token=token)
+      existing_comment = next(
+        (
+          comment
+          for comment in comments
+          if isinstance(comment, dict) and marker in comment.get("body", "") and comment.get("user", {}).get("type") == "Bot"
+        ),
+        None,
+      )
+
+      if existing_comment is None:
+        github_request(comments_url, method="POST", payload={"body": comment_body}, token=token)
+        print(f"GHAReports created a pull request comment for PR #{pr_number}", file=sys.stderr)
+      else:
+        comment_url = f"{api_url}/repos/{repository}/issues/comments/{existing_comment['id']}"
+        github_request(comment_url, method="PATCH", payload={"body": comment_body}, token=token)
+        print(f"GHAReports updated pull request comment {existing_comment['id']} for PR #{pr_number}", file=sys.stderr)
+    except error.HTTPError as exc:
+      print(f"GHAReports failed to publish pull request comment: HTTP {exc.code}", file=sys.stderr)
+    except error.URLError as exc:
+      print(f"GHAReports failed to publish pull request comment: {exc.reason}", file=sys.stderr)
+
   @skip_if_not_initialized
   def close(self):
     if self.as_listener:
@@ -244,10 +364,8 @@ class GHAReports(object):
 
     stats, passed, failed, skipped, warns, envs = self._generate_report_structure()
 
-    header_level = 1
-    if self._append:
-      header_level = 2
-      self.summary.header("Robot Framework Test Summary", level=1)
+    self.summary.header("Robot Framework Test Summary", level=1)
+    header_level = 2
 
     if self.include_totals:
       self.summary.horizontal_ruler()
@@ -334,3 +452,5 @@ class GHAReports(object):
         Path(filename).write_text(buffer.getvalue(), encoding="utf-8")
       except Exception as e:  # NOQA: BLE001
         print(f"GHAReports encountered an errorw while writing to {filename}:\n{e}", file=sys.stderr)
+
+    self._write_pull_request_comment()
