@@ -19,7 +19,7 @@ def format(ctx):
 
 @task
 def build(ctx):
-  ctx.run("pdm build")
+  ctx.run("uv build")
 
 
 @task
@@ -60,7 +60,7 @@ def examplecicli(ctx):
   if not os.environ.get("GITHUB_STEP_SUMMARY", None):
     os.environ.update({"GITHUB_STEP_SUMMARY": str(Path.cwd() / "example_summary.md")})
   ctx.run(
-    f"cd example && robot  --nostatusrc --pythonpath ../src .; ghareports --robotlog output.xml -m {Path.cwd()}/extra_summary.md"
+    f"cd example && robot  --nostatusrc --pythonpath ../src .; ghareports --robotlog output.xml -m {Path.cwd()}/extra_summary.md --pr-comment"
   )
 
 

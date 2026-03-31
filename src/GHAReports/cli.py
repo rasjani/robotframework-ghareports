@@ -18,6 +18,7 @@ class GHAReportsVisitor(ResultVisitor):
     include_envs=True,
     env_variables=None,
     overwrite_summary=False,
+    pr_comment=False,
   ):
     self.sum = GHAReports(
       cell_width_in_characters,
@@ -32,6 +33,7 @@ class GHAReportsVisitor(ResultVisitor):
       include_envs,
       env_variables,
       overwrite_summary,
+      pr_comment,
     )
 
   def start_suite(self, suite):
@@ -132,6 +134,13 @@ def main():
     action=argparse.BooleanOptionalAction,
     help="Overwrite existing github step summary",
   )
+  parser.add_argument(
+    "--pr-comment",
+    default=False,
+    dest="pr_comment",
+    action=argparse.BooleanOptionalAction,
+    help="Create or update a pull request comment with the generated report",
+  )
 
   args = parser.parse_args()
 
@@ -152,6 +161,7 @@ def main():
       include_warnings=args.include_warnings,
       env_variables=args.envs,
       overwrite_summary=args.overwrite_summary,
+      pr_comment=args.pr_comment,
     )
   else:
     visitor = GHAReportsVisitor(
@@ -163,6 +173,7 @@ def main():
       include_warnings=args.include_warnings,
       env_variables=args.envs,
       overwrite_summary=args.overwrite_summary,
+      pr_comment=args.pr_comment,
     )
 
   result.visit(visitor)

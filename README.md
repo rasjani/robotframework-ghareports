@@ -6,6 +6,7 @@ It supports two workflows:
 
 - Use it as a Robot Framework listener during a normal `robot` run.
 - Use it as a standalone CLI after execution, for example after pabot has merged results into a single `output.xml`.
+- Optionally publish the generated report as a pull request comment.
 
 The generated summary is written to `GITHUB_STEP_SUMMARY` when that environment variable is available. You can also write the same report to a separate Markdown file for local inspection or archival.
 
@@ -23,6 +24,8 @@ The generated Markdown can include:
 - Selected environment variables
 
 Long table cells can be wrapped to improve readability in GitHub's summary view.
+
+When enabled, the same Markdown can also be published to the pull request as an updatable bot comment. This is useful when the GitHub step summary size limit becomes a constraint.
 
 ## Installation
 
@@ -79,6 +82,39 @@ ghareports --robotlog output.xml --markdown extra_summary.md
 ```
 
 This is also the recommended way to inspect output locally when you are not running inside GitHub Actions.
+
+## Publishing as a Pull Request Comment
+
+If the GitHub Actions step summary is too limited for your use case, you can also publish the generated report as a pull request comment.
+
+CLI mode:
+
+```bash
+ghareports --robotlog output.xml --pr-comment
+```
+
+Listener mode:
+
+```bash
+robot --listener GHAReports:pr_comment=True path/to/tests
+```
+
+The comment is upserted using a hidden marker, so repeated runs update the same bot comment instead of creating a new one every time.
+
+This feature requires:
+
+- a pull request workflow context
+- `GITHUB_TOKEN` or `GH_TOKEN`
+- `GITHUB_REPOSITORY`
+- `GITHUB_EVENT_PATH`
+
+In GitHub Actions, make sure the workflow token has permission to write pull request comments:
+
+```yaml
+permissions:
+  contents: read
+  pull-requests: write
+```
 
 ## Controlling Table Cell Width
 
@@ -146,6 +182,7 @@ Common options:
 - `--[no-]skipped`: include or exclude skipped tests section
 - `--[no-]warnings`: include or exclude warnings section
 - `--[no-]overwrite-summary`: overwrite an existing GitHub summary instead of appending to it
+- `--[no-]pr-comment`: create or update a pull request comment with the generated report
 
 See all options with:
 
