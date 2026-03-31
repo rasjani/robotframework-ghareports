@@ -1,7 +1,8 @@
 [tool.ruff]
 exclude = [
   ".git",
-  "venv"
+  "venv",
+  ".venv"
 ]
 line-length = 130
 indent-width = 2
@@ -18,7 +19,7 @@ indent-style = "space"
 
 [project]
 name = "robotframework-ghareports"
-version = "0.9.1"
+version = "0.9.2"
 description = "Generate GitHub Actions job summaries from Robot Framework results"
 readme = "README.md"
 authors = [
