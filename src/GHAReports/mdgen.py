@@ -94,10 +94,17 @@ class MDGen:
       temp_target.write(f"{lp}| ")
       for cell in row:
         cell = str(cell)
-        if "\n" in cell:
-          cell = "<br/>".join(cell.split("\n"))
         if cell_width_in_characters != 0:
-          cell = "<br/>".join(wrap(cell, cell_width_in_characters))
+          wrapped_lines = []
+          for line in cell.split("\n"):
+            wrapped = wrap(line, cell_width_in_characters)
+            if len(wrapped) == 0:
+              wrapped_lines.append("")
+            else:
+              wrapped_lines.extend(wrapped)
+          cell = "<br/>".join(wrapped_lines)
+        elif "\n" in cell:
+          cell = "<br/>".join(cell.split("\n"))
         temp_target.write(f"{cell} |")
       temp_target.write(f"{LINESEP}")
     temp_target.write(LINESEP)
