@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from io import StringIO
 from textwrap import wrap
-import sys
 
 MAX_GH_SUMMARY_SIZE = 1024000
 MD_FENCE = "```"
