@@ -615,3 +615,14 @@ def test_mdgen_size_limit_falls_back_to_header_only(monkeypatch):
   assert "| Name |" in md.gh_summary.getvalue()
   assert "Due to size limits, this section was not written to GitHub Summary report" in md.gh_summary.getvalue()
   assert "| Value |" in md.full_summary.getvalue()
+
+
+def test_mdgen_size_limit_uses_utf8_byte_length(monkeypatch):
+  md = MDGen()
+  table_text = "| Name |\n| - |\n| ää |\n\n"
+  monkeypatch.setattr(mdgen_module, "MAX_GH_SUMMARY_SIZE", len(table_text.encode("utf-8")) + 1)
+
+  md.table(["Name"], [["ää"]])
+
+  assert "| ää |" in md.gh_summary.getvalue()
+  assert "Due to size limits" not in md.gh_summary.getvalue()

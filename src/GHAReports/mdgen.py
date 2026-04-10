@@ -36,6 +36,9 @@ class MDGen:
     self.gh_summary.write(text)
     self.full_summary.write(text)
 
+  def _utf8_size(self, text):
+    return len(text.encode("utf-8"))
+
   def horizontal_ruler(self):
     self.write(f"{LINESEP}{MD_HORIZONTAL_RULE}{LINESEP}")
 
@@ -111,7 +114,7 @@ class MDGen:
 
     self.full_summary.write(temp_target.getvalue())
 
-    if sys.getsizeof(self.gh_summary.getvalue()) + sys.getsizeof(temp_target.getvalue()) < MAX_GH_SUMMARY_SIZE:
+    if self._utf8_size(self.gh_summary.getvalue()) + self._utf8_size(temp_target.getvalue()) < MAX_GH_SUMMARY_SIZE:
       self.gh_summary.write(temp_target.getvalue())
     else:
       self.gh_summary.write(header)
