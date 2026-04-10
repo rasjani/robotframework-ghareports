@@ -86,6 +86,13 @@ def test_with_pabot():
     assert r._report is None
 
 
+def test_invalid_pabot_queue_index_does_not_crash():
+  with modified_environ(PABOTQUEUEINDEX="foo"):
+    r = GHAReports(report_file="report.md")
+    assert r.initialized is False
+    assert r._report is None
+
+
 def test_instances_do_not_share_report_state():
   first = GHAReports(report_file="first.md")
   second = GHAReports(report_file="second.md")

@@ -147,6 +147,7 @@ class GHAReports(object):
 
     _pabot_index = os.environ.get("PABOTQUEUEINDEX", None)
     if _pabot_index is not None:
+      p_index = None
       try:
         p_index = int(_pabot_index)
       except ValueError:
