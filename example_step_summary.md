@@ -1,12 +1,14 @@
+# Robot Framework Test Summary
+
 
 ---
-# Totals
+## Totals
 
 | Passed ✅ | Failed ❌ | Skipped ⏩ | Total | Passrate % | Duration (sec) |
 |:---------:|:---------:|:----------:|:-----:|-----------:|---------------:|
-| 6 |4 |1 |11 |60.0 |4.0 |
+| 6 |4 |1 |11 |60.0 |4.1 |
 
-# ✅ Passing tests
+## ✅ Passing tests
 
 <details>
   <summary>Show Details ...</summary>
@@ -22,21 +24,21 @@
 
 </details>
 
-# ❌ Failing tests
+## ❌ Failing tests
 
 <details>
   <summary>Show Details ...</summary>
 
   | Testcase | Message | Duration (sec) | Suite |
   |:---------|:--------|---------------:|:------|
-  | This will just be for debugging purposes |This Suite will completely fail with assertation: True != False |0.0 |Example.Multiple Suites.Ternary Suite |
+  | This will just be for debugging purposes |This Suite will completely fail with assertation: True !=<br/>False |0.0 |Example.Multiple Suites.Ternary Suite |
   | And so is this |This Suite will completely fail |2.0 |Example.Multiple Suites.Ternary Suite |
   | Second Test |For the heck of it, lets mark this case as failure |0.3 |Example.Single Suite.Initial Suite |
-  | Forth Test With Very Long Message |TimeoutError: page.waitForNavigation: Timeout 10000ms exceeded.<br/>=========================== logs ===========================<br/>waiting for navigation to |0.0 |Example.Single Suite.Initial Suite |
+  | Forth Test With Very Long Message |TimeoutError: page.waitForNavigation: Timeout 10000ms<br/>exceeded.<br/>=========================== logs ===========================<br/>waiting for navigation to |0.0 |Example.Single Suite.Initial Suite |
 
 </details>
 
-# ⏩ Skipped tests
+## ⏩ Skipped tests
 
 <details>
   <summary>Show Details ...</summary>
@@ -47,7 +49,7 @@
 
 </details>
 
-# ⚠ Warnings
+## ⚠ Warnings
 
 <details>
   <summary>Show Details ...</summary>
