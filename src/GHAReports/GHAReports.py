@@ -132,6 +132,19 @@ class GHAReports(object):
     overwrite_summary=False,
     pr_comment=False,
   ):
+    self._suites = {}
+    self._current_case = None
+    self._current_suite = None
+    self._testcases = {}
+    self._output = None
+    self._report = None
+    self._append = False
+    self.initialized = False
+    self.summary = None
+    self.start_ts = None
+    self.stop_ts = None
+    self.pr_comment = False
+
     _pabot_index = os.environ.get("PABOTQUEUEINDEX", None)
     if _pabot_index is not None:
       try:

@@ -86,6 +86,28 @@ def test_with_pabot():
     assert r._report is None
 
 
+def test_instances_do_not_share_report_state():
+  first = GHAReports(report_file="first.md")
+  second = GHAReports(report_file="second.md")
+
+  first._testcases["Suite.One"] = {
+    "Suite.One.Test": {
+      "name": "Test",
+      "duration": 100,
+      "suite": "Suite.One",
+      "status": "PASS",
+      "message": "",
+      "warnings": [],
+    }
+  }
+  first._suites["Suite.One"] = {"name": "Suite.One"}
+
+  assert first._testcases is not second._testcases
+  assert first._suites is not second._suites
+  assert second._testcases == {}
+  assert second._suites == {}
+
+
 def test_append_existing_summary(tmp_path):
   step_summary = tmp_path / "step_summary.md"
   step_summary.write_text("Existing summary\n", encoding="utf-8")
