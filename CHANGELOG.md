@@ -2,6 +2,16 @@
 
 All notable changes in this project since the first tagged release are documented in this file.
 
+## 1.0.0 - 2026-04-10
+
+- Fixed reporter instance state so repeated use in the same Python process no longer leaks suites or test cases between runs.
+- Fixed handling of invalid `PABOTQUEUEINDEX` values so initialization no longer crashes with `UnboundLocalError`.
+- Fixed GitHub summary size accounting to use actual UTF-8 payload size instead of Python object memory size.
+- Fixed listener boolean argument parsing so options such as `overwrite_summary=True` work correctly when passed as Robot listener arguments.
+- Fixed summary append behavior so existing `GITHUB_STEP_SUMMARY` content is appended only to the GitHub summary, while explicitly requested extra Markdown reports are always overwritten.
+- Updated local development instructions to use the `uv` workflow and clarified when `uv run` can be omitted.
+- Updated example Invoke tasks to overwrite local example summaries on repeated runs.
+
 ## 0.9.2 - 2026-03-31
 
 - Added support for publishing the generated summary as a pull request comment. (#51)
