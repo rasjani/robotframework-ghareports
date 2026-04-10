@@ -226,18 +226,21 @@ Source code lives under `src/GHAReports`. Tests are in `utest/`, and the example
 Install development dependencies with your preferred toolchain, then use the repository tasks:
 
 ```bash
-invoke formatcheck
-invoke check
-python -m pytest
+uv sync --locked --all-extras --dev
+uv run inv formatcheck
+uv run inv ruff
+uv run python -m pytest
 ```
+
+If you have installed `ghareports` and the development tools into an already activated virtual environment, you can omit `uv run` and invoke the commands directly because the executables are already on `PATH`.
 
 Useful local example commands:
 
 ```bash
 export GITHUB_STEP_SUMMARY=$(pwd)/example_summary.md
-invoke example
-invoke examplecilistener
-invoke examplecicli
+uv run inv example
+uv run inv examplecilistener
+uv run inv examplecicli
 ```
 
 `invoke example` regenerates the sample summary from the demo suites. The `examplecilistener` and `examplecicli` tasks are useful when validating the listener and CLI flows locally.
