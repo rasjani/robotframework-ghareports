@@ -42,7 +42,7 @@ def check(ctx):
 @task
 def example(ctx):
   ctx.run(
-    "cd example && GITHUB_STEP_SUMMARY=../example_step_summary.md robot  --nostatusrc --pythonpath ../src --listener GHAReports:collapsaple=True ."
+    "cd example && GITHUB_STEP_SUMMARY=../example_step_summary.md robot  --nostatusrc --pythonpath ../src --listener GHAReports:collapsaple=True:overwrite_summary=True ."
   )
 
 
@@ -51,7 +51,7 @@ def examplecilistener(ctx):
   if not os.environ.get("GITHUB_STEP_SUMMARY", None):
     os.environ.update({"GITHUB_STEP_SUMMARY": str(Path.cwd() / "example_summary.md")})
   ctx.run(
-    f"cd example && robot  --nostatusrc --pythonpath ../src --listener GHAReports:60:report_file={Path.cwd()}/extra_summary.md ."
+    f"cd example && robot  --nostatusrc --pythonpath ../src --listener GHAReports:60:report_file={Path.cwd()}/extra_summary.md:overwrite_summary=True ."
   )
 
 

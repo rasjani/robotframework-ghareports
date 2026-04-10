@@ -141,6 +141,41 @@ def test_overwrite_existing_summary(tmp_path):
   assert content.count("# Robot Framework Test Summary") == 1
 
 
+def test_listener_string_overwrite_summary_overwrites_existing_summary(tmp_path):
+  step_summary = tmp_path / "step_summary.md"
+  step_summary.write_text("Existing summary\n", encoding="utf-8")
+
+  with modified_environ(GITHUB_STEP_SUMMARY=f"{step_summary}"):
+    r = GHAReports(overwrite_summary="True")
+    r.close()
+
+  content = step_summary.read_text(encoding="utf-8")
+  assert "Existing summary" not in content
+  assert content.count("# Robot Framework Test Summary") == 1
+
+
+def test_existing_step_summary_does_not_leak_into_extra_report(tmp_path):
+  step_summary = tmp_path / "step_summary.md"
+  extra_report = tmp_path / "extra.md"
+  step_summary.write_text("Existing step summary\n", encoding="utf-8")
+  extra_report.write_text("Existing extra report\n", encoding="utf-8")
+
+  with modified_environ(GITHUB_STEP_SUMMARY=f"{step_summary}"):
+    r = GHAReports(report_file=f"{extra_report}")
+    r.close()
+
+  step_content = step_summary.read_text(encoding="utf-8")
+  extra_content = extra_report.read_text(encoding="utf-8")
+
+  assert step_content.startswith("Existing step summary\n")
+  assert step_content.count("# Robot Framework Test Summary") == 1
+  assert "Existing extra report" not in step_content
+
+  assert "Existing step summary" not in extra_content
+  assert "Existing extra report" not in extra_content
+  assert extra_content.count("# Robot Framework Test Summary") == 1
+
+
 def test_generate_report_structure_stats_and_envs():
   r = GHAReports(report_file="dummy.md")
   r.start_ts = 1000

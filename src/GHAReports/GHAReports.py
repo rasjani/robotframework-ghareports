@@ -132,6 +132,16 @@ class GHAReports(object):
     overwrite_summary=False,
     pr_comment=False,
   ):
+    collapsaple = is_truthy(collapsaple)
+    as_listener = is_truthy(as_listener)
+    include_totals = is_truthy(include_totals)
+    include_passes = is_truthy(include_passes)
+    include_skipped = is_truthy(include_skipped)
+    include_fails = is_truthy(include_fails)
+    include_warnings = is_truthy(include_warnings)
+    include_envs = is_truthy(include_envs)
+    overwrite_summary = is_truthy(overwrite_summary)
+
     self._suites = {}
     self._current_case = None
     self._current_suite = None
@@ -189,7 +199,7 @@ class GHAReports(object):
       existing_summary = self._output.read_text(encoding="utf-8")
       if existing_summary.strip():
         print(f"GHAReports will append to existing summary file: {self._output!s}", file=sys.stderr)
-        self.summary.write(existing_summary)
+        self.summary.gh_summary.write(existing_summary)
         self._append = True
 
   @skip_if_not_initialized
