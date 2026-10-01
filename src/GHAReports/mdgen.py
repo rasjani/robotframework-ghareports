@@ -24,11 +24,13 @@ alignment_lookup = {"left": MD_TABLE_ALIGN_LEFT, "right": MD_TABLE_ALIGN_RIGHT, 
 class MDGen:
   _line_prefix = ""
 
-  def __init__(self, collapsaple=False):
+  def __init__(self, collapsaple=False, details=None):
     self.gh_summary = StringIO()
     self.full_summary = StringIO()
-    self.collapsaple = collapsaple
-    if collapsaple:
+    if details is None:
+      details = collapsaple
+    self.collapsaple = details
+    if details:
       self._line_prefix = "  "
 
   def write(self, text):

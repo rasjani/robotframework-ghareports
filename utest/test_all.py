@@ -246,6 +246,78 @@ def test_generate_report_structure_all_skipped_passrate_zero():
   assert envs == []
 
 
+def test_default_sections_include_headings_and_details(tmp_path):
+  report_file = tmp_path / "report.md"
+  r = GHAReports(
+    report_file=str(report_file),
+    include_totals=False,
+    include_passes=False,
+    include_skipped=False,
+    include_warnings=False,
+  )
+  r._testcases = {
+    "Suite.One": {
+      "Suite.One.Fail": {
+        "name": "Fail",
+        "duration": 100,
+        "suite": "Suite.One",
+        "status": "FAIL",
+        "message": "Boom",
+        "warnings": [],
+      }
+    }
+  }
+
+  r.close()
+
+  content = report_file.read_text(encoding="utf-8")
+  assert "## ❌ Failing tests" in content
+  assert "<summary>Show Details ...</summary>" in content
+
+
+def test_compact_sections_show_only_selected_table_and_report_title(tmp_path):
+  report_file = tmp_path / "report.md"
+  r = GHAReports(
+    report_file=str(report_file),
+    include_totals=False,
+    include_passes=False,
+    include_skipped=False,
+    include_warnings=False,
+    details=False,
+    section_headings=False,
+  )
+  r._testcases = {
+    "Suite.One": {
+      "Suite.One.Fail": {
+        "name": "Fail",
+        "duration": 100,
+        "suite": "Suite.One",
+        "status": "FAIL",
+        "message": "Boom",
+        "warnings": [],
+      }
+    }
+  }
+
+  r.close()
+
+  content = report_file.read_text(encoding="utf-8")
+  assert content.count("# Robot Framework Test Summary") == 1
+  assert "| Testcase | Message | Duration (sec) | Suite |" in content
+  assert "Show Details ..." not in content
+  assert "<details>" not in content
+  assert "Failing tests" not in content
+  assert "## " not in content
+
+
+def test_details_overrides_legacy_collapsaple_option():
+  legacy = GHAReports(report_file="dummy.md", collapsaple=False)
+  override = GHAReports(report_file="dummy.md", collapsaple=False, details=True)
+
+  assert legacy.summary.collapsaple is False
+  assert override.summary.collapsaple is True
+
+
 def test_log_message_collects_only_warn_for_active_test():
   r = GHAReports(report_file="dummy.md")
   r._current_suite = "Suite.One"
@@ -554,6 +626,8 @@ def test_cli_forwards_arguments(monkeypatch, tmp_path):
       env_variables=None,
       overwrite_summary=False,
       pr_comment=False,
+      details=True,
+      section_headings=True,
     ):
       calls["visitor_args"] = {
         "cell_width_in_characters": cell_width_in_characters,
@@ -567,6 +641,8 @@ def test_cli_forwards_arguments(monkeypatch, tmp_path):
         "env_variables": env_variables,
         "overwrite_summary": overwrite_summary,
         "pr_comment": pr_comment,
+        "details": details,
+        "section_headings": section_headings,
       }
 
   class FakeExecutionResult:
@@ -596,6 +672,8 @@ def test_cli_forwards_arguments(monkeypatch, tmp_path):
       "--no-skipped",
       "--no-fails",
       "--no-warnings",
+      "--no-details",
+      "--no-section-headings",
       "--overwrite-summary",
       "--pr-comment",
     ],
@@ -616,6 +694,8 @@ def test_cli_forwards_arguments(monkeypatch, tmp_path):
     "env_variables": "A,B",
     "overwrite_summary": True,
     "pr_comment": True,
+    "details": False,
+    "section_headings": False,
   }
   assert isinstance(calls["visited_with"], FakeVisitor)
 

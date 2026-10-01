@@ -134,6 +134,24 @@ ghareports --robotlog output.xml --width 35
 
 This is especially useful for long failure messages.
 
+## Controlling Detail Sections and Headings
+
+By default, result tables are collapsed behind a `Show Details ...` disclosure and have section headings. To show selected tables immediately and omit all H2 section headings, use `--no-details --no-section-headings`.
+
+For example, to write only a compact failures table:
+
+```bash
+python -m GHAReports --robotlog path/to/output.xml --markdown fail.md \
+  --no-totals --no-passes --no-skipped --fails --no-warnings \
+  --no-details --no-section-headings
+```
+
+In listener mode, use `details=False` and `section_headings=False`:
+
+```bash
+robot --listener GHAReports:details=False:section_headings=False path/to/tests
+```
+
 ## Including Environment Variables
 
 You can include selected environment variables in the generated summary. This is useful when the same test assets run against multiple environments or browser combinations and that context should be visible in the job summary.
@@ -181,6 +199,8 @@ Common options:
 - `--[no-]fails`: include or exclude failing tests section
 - `--[no-]skipped`: include or exclude skipped tests section
 - `--[no-]warnings`: include or exclude warnings section
+- `--[no-]details`: include or exclude collapsible details sections
+- `--[no-]section-headings`: include or exclude H2 section headings
 - `--[no-]overwrite-summary`: overwrite an existing GitHub summary instead of appending to it
 - `--[no-]pr-comment`: create or update a pull request comment with the generated report
 
