@@ -19,7 +19,7 @@ indent-style = "space"
 
 [project]
 name = "robotframework-ghareports"
-version = "0.9.2"
+version = "1.0.0"
 description = "Generate GitHub Actions job summaries from Robot Framework results"
 readme = "README.md"
 authors = [
@@ -28,7 +28,7 @@ authors = [
 
 
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: Developers",
     "Intended Audience :: End Users/Desktop",

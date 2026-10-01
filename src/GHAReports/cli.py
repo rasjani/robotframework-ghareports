@@ -19,6 +19,8 @@ class GHAReportsVisitor(ResultVisitor):
     env_variables=None,
     overwrite_summary=False,
     pr_comment=False,
+    details=True,
+    section_headings=True,
   ):
     self.sum = GHAReports(
       cell_width_in_characters,
@@ -34,6 +36,8 @@ class GHAReportsVisitor(ResultVisitor):
       env_variables,
       overwrite_summary,
       pr_comment,
+      details=details,
+      section_headings=section_headings,
     )
 
   def start_suite(self, suite):
@@ -126,6 +130,20 @@ def main():
     action=argparse.BooleanOptionalAction,
     help="Include/exclude logging from warnings from final report",
   )
+  parser.add_argument(
+    "--details",
+    default=True,
+    dest="details",
+    action=argparse.BooleanOptionalAction,
+    help="Include/exclude collapsible details sections from the final report",
+  )
+  parser.add_argument(
+    "--section-headings",
+    default=True,
+    dest="section_headings",
+    action=argparse.BooleanOptionalAction,
+    help="Include/exclude section headings from the final report",
+  )
 
   parser.add_argument(
     "--overwrite-summary",
@@ -162,6 +180,8 @@ def main():
       env_variables=args.envs,
       overwrite_summary=args.overwrite_summary,
       pr_comment=args.pr_comment,
+      details=args.details,
+      section_headings=args.section_headings,
     )
   else:
     visitor = GHAReportsVisitor(
@@ -174,6 +194,8 @@ def main():
       env_variables=args.envs,
       overwrite_summary=args.overwrite_summary,
       pr_comment=args.pr_comment,
+      details=args.details,
+      section_headings=args.section_headings,
     )
 
   result.visit(visitor)
